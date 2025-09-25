@@ -1,36 +1,26 @@
-Auth Service (auth_svc)
+# Auth Service (auth_svc)
 
-The Auth Service is a core component of the microservices ecosystem.
-It is responsible for authentication and authorization, ensuring that only verified users can access protected resources.
+The **Auth Service** is responsible for **authentication** and **authorization** within the microservices ecosystem.  
+It handles user registration, login, JWT issuance and refresh, and publishes events to Kafka so that other services can consume them.
 
-This service manages user registration, login, JWT token issuance and refresh, and communicates user-related events to other services via Kafka.
+---
 
-Features
+## Features
 
-User registration with validation
+- Register new users
+- Login with JWT Access Token & Refresh Token
+- Token validation for incoming requests
+- Built with **Spring Security** & **JWT**
+- Publishes user-related events to **Kafka** (e.g., `USER_REGISTERED`)
+- Stores user data in **MySQL**
 
-Secure login with username/email and password
+---
 
-Issues JWT Access Tokens and Refresh Tokens
+## Tech Stack
 
-Validates tokens for incoming requests
-
-Stateless authentication using Spring Security
-
-Publishes domain events (e.g., USER_REGISTERED) to Kafka
-
-Persists user data in MySQL
-
-Tech Stack
-
-Spring Boot 3.x
-
-Spring Security 6
-
-Spring Data JPA / Hibernate
-
-MySQL
-
-Spring Kafka
-
-JWT (JSON Web Token)
+- **Spring Boot 3.x**
+- **Spring Security 6**
+- **Spring Data JPA / Hibernate**
+- **MySQL**
+- **Spring Kafka**
+- **JWT (JSON Web Token)**
