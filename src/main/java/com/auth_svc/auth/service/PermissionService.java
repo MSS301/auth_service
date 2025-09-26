@@ -23,10 +23,8 @@ public class PermissionService {
 
     public PermissionResponse create(PermissionRequest request) {
         Permission permission = new Permission();
-        // Set fields from request to entity
         permission.setName(request.getName());
         permission.setDescription(request.getDescription());
-        // Add other fields as needed
 
         permission = permissionRepository.save(permission);
 
@@ -47,7 +45,7 @@ public class PermissionService {
     private PermissionResponse toPermissionResponse(Permission permission) {
         PermissionResponse response = new PermissionResponse();
         response.setName(permission.getName());
-        // Add other fields as needed
+        response.setDescription(permission.getDescription());
         return response;
     }
 }
