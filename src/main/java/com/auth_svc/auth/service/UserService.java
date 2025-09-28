@@ -16,7 +16,7 @@ import com.auth_svc.auth.repository.RoleRepository;
 import com.auth_svc.auth.repository.UserRepository;
 import com.auth_svc.event.dto.NotificationEvent;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.kafka.core.KafkaTemplate;
+//import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,7 +35,7 @@ public class UserService {
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
-    KafkaTemplate<String, Object> kafkaTemplate;
+//    KafkaTemplate<String, Object> kafkaTemplate;
 
     public UserResponse createUser(UserCreationRequest request) {
         User user = toUser(request);
@@ -60,7 +60,7 @@ public class UserService {
                 .body("Hello, " + request.getUsername())
                 .build();
 
-        kafkaTemplate.send("notification-delivery", notificationEvent);
+//        kafkaTemplate.send("notification-delivery", notificationEvent);
 
         UserResponse userCreationResponse = toUserResponse(user);
         // Set profile id if needed
