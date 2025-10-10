@@ -18,6 +18,13 @@ public enum ErrorCode {
     INVALID_DOB(1008, "Your age must be at least {min}", HttpStatus.BAD_REQUEST),
     INVALID_EMAIL(1009, "Invalid email address", HttpStatus.BAD_REQUEST),
     EMAIL_IS_REQUIRED(1009, "Email is required", HttpStatus.BAD_REQUEST),
+    SCHOOL_NOT_FOUND(1010, "School not found", HttpStatus.NOT_FOUND),
+    SCHOOL_ALREADY_EXISTS(1011, "School with this name already exists", HttpStatus.CONFLICT),
+    USER_PROFILE_NOT_FOUND(1012, "User profile not found", HttpStatus.NOT_FOUND),
+    USER_PROFILE_ALREADY_EXISTS(1013, "User profile already exists for this account", HttpStatus.CONFLICT),
+    CLASS_NOT_FOUND(1014, "Class not found", HttpStatus.NOT_FOUND),
+    CLASS_STUDENT_NOT_FOUND(1015, "Class student enrollment not found", HttpStatus.NOT_FOUND),
+    CLASS_STUDENT_ALREADY_EXISTS(1016, "Student is already enrolled in this class", HttpStatus.CONFLICT),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

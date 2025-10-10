@@ -1,0 +1,549 @@
+{
+  "info": {
+    "name": "Learning Management System API",
+    "description": "Complete API collection for LMS endpoints in auth_service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Schools",
+      "item": [
+        {
+          "name": "Create School",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ABC High School\",\n  \"address\": \"123 Main Street, City\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schools",
+              "host": ["{{baseUrl}}"],
+              "path": ["schools"]
+            }
+          }
+        },
+        {
+          "name": "Get School by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schools/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["schools", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get All Schools",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schools",
+              "host": ["{{baseUrl}}"],
+              "path": ["schools"]
+            }
+          }
+        },
+        {
+          "name": "Search Schools by Name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schools?name=ABC",
+              "host": ["{{baseUrl}}"],
+              "path": ["schools"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "ABC"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update School",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ABC High School Updated\",\n  \"address\": \"456 New Street, City\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schools/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["schools", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete School",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schools/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["schools", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Profiles",
+      "item": [
+        {
+          "name": "Create User Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": 123,\n  \"schoolId\": 1,\n  \"fullName\": \"John Doe\",\n  \"dateOfBirth\": \"2000-01-15\",\n  \"avatarUrl\": \"https://example.com/avatar.jpg\",\n  \"role\": \"STUDENT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profiles"]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profiles", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile by Account ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles/account/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profiles", "account", "123"]
+            }
+          }
+        },
+        {
+          "name": "Get All User Profiles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profiles"]
+            }
+          }
+        },
+        {
+          "name": "Get Profiles by School",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles?schoolId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profiles"],
+              "query": [
+                {
+                  "key": "schoolId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Profiles by Role",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles?role=TEACHER",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profiles"],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "TEACHER"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Profiles by School and Role",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles?schoolId=1&role=STUDENT",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profiles"],
+              "query": [
+                {
+                  "key": "schoolId",
+                  "value": "1"
+                },
+                {
+                  "key": "role",
+                  "value": "STUDENT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schoolId\": 1,\n  \"fullName\": \"John Doe Updated\",\n  \"dateOfBirth\": \"2000-01-15\",\n  \"avatarUrl\": \"https://example.com/new-avatar.jpg\",\n  \"role\": \"TEACHER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profiles", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete User Profile",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profiles", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Classes",
+      "item": [
+        {
+          "name": "Create Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schoolId\": 1,\n  \"name\": \"Mathematics 101\",\n  \"grade\": 10,\n  \"teacherId\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"]
+            }
+          }
+        },
+        {
+          "name": "Get Class by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get All Classes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"]
+            }
+          }
+        },
+        {
+          "name": "Get Classes by School",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes?schoolId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"],
+              "query": [
+                {
+                  "key": "schoolId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Classes by Teacher",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes?teacherId=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"],
+              "query": [
+                {
+                  "key": "teacherId",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Classes by Grade",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes?grade=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"],
+              "query": [
+                {
+                  "key": "grade",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Classes by School and Grade",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes?schoolId=1&grade=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes"],
+              "query": [
+                {
+                  "key": "schoolId",
+                  "value": "1"
+                },
+                {
+                  "key": "grade",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Class",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schoolId\": 1,\n  \"name\": \"Advanced Mathematics\",\n  \"grade\": 11,\n  \"teacherId\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/classes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Class",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["classes", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Class Students (Enrollment)",
+      "item": [
+        {
+          "name": "Enroll Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": 1,\n  \"studentId\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/class-students",
+              "host": ["{{baseUrl}}"],
+              "path": ["class-students"]
+            }
+          }
+        },
+        {
+          "name": "Get Enrollment by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/class-students/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["class-students", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get All Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/class-students",
+              "host": ["{{baseUrl}}"],
+              "path": ["class-students"]
+            }
+          }
+        },
+        {
+          "name": "Get Students in Class",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/class-students?classId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["class-students"],
+              "query": [
+                {
+                  "key": "classId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Classes for Student",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/class-students?studentId=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["class-students"],
+              "query": [
+                {
+                  "key": "studentId",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unenroll Student",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/class-students/unenroll?classId=1&studentId=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["class-students", "unenroll"],
+              "query": [
+                {
+                  "key": "classId",
+                  "value": "1"
+                },
+                {
+                  "key": "studentId",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Enrollment by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/class-students/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["class-students", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ]
+}
