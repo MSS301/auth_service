@@ -2,8 +2,6 @@ package com.auth_svc.auth.configuration;
 
 import java.io.IOException;
 
-import com.auth_svc.auth.dto.response.ApiResponse;
-import com.auth_svc.auth.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -11,7 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-
+import com.auth_svc.auth.dto.response.ApiResponse;
+import com.auth_svc.auth.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

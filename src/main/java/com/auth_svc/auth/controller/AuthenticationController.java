@@ -2,6 +2,11 @@ package com.auth_svc.auth.controller;
 
 import java.text.ParseException;
 
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.auth_svc.auth.dto.request.AuthenticationRequest;
 import com.auth_svc.auth.dto.request.IntrospectRequest;
 import com.auth_svc.auth.dto.request.LogoutRequest;
@@ -10,12 +15,6 @@ import com.auth_svc.auth.dto.response.ApiResponse;
 import com.auth_svc.auth.dto.response.AuthenticationResponse;
 import com.auth_svc.auth.dto.response.IntrospectResponse;
 import com.auth_svc.auth.service.AuthenticationService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-
 import com.nimbusds.jose.JOSEException;
 
 import lombok.AccessLevel;

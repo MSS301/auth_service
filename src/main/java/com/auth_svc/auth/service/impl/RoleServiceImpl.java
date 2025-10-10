@@ -1,5 +1,12 @@
 package com.auth_svc.auth.service.impl;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.auth_svc.auth.dto.request.RoleRequest;
 import com.auth_svc.auth.dto.response.PermissionResponse;
 import com.auth_svc.auth.dto.response.RoleResponse;
@@ -8,14 +15,10 @@ import com.auth_svc.auth.entity.Role;
 import com.auth_svc.auth.repository.PermissionRepository;
 import com.auth_svc.auth.repository.RoleRepository;
 import com.auth_svc.auth.service.RoleService;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +41,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public List<RoleResponse> getAll() {
-        return roleRepository.findAll().stream()
-                .map(this::toRoleResponse)
-                .collect(Collectors.toList());
+        return roleRepository.findAll().stream().map(this::toRoleResponse).collect(Collectors.toList());
     }
 
     @Override
@@ -54,14 +55,13 @@ public class RoleServiceImpl implements RoleService {
         response.setName(role.getName());
         response.setDescription(role.getDescription());
         if (role.getPermissions() != null) {
-            response.setPermissions(
-                    role.getPermissions().stream()
-                            .map(this::toPermissionResponse)
-                            .collect(Collectors.toSet())
-            );
+            response.setPermissions(role.getPermissions().stream()
+                    .map(this::toPermissionResponse)
+                    .collect(Collectors.toSet()));
         }
         return response;
     }
+
     private PermissionResponse toPermissionResponse(Permission permission) {
         PermissionResponse response = new PermissionResponse();
         response.setName(permission.getName());
@@ -69,5 +69,3 @@ public class RoleServiceImpl implements RoleService {
         return response;
     }
 }
-
-

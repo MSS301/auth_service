@@ -25,5 +25,3 @@ public class UserRequest {
     @NotBlank(message = "INVALID_PASSWORD")
     String password;
 }
-
-

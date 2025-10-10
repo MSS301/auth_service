@@ -5,6 +5,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.auth_svc.auth.constant.PredefinedRole;
 import com.auth_svc.auth.dto.request.UserCreationRequest;
 import com.auth_svc.auth.dto.request.UserUpdateRequest;
@@ -20,11 +26,6 @@ import com.auth_svc.auth.repository.RoleRepository;
 import com.auth_svc.auth.repository.UserRepository;
 import com.auth_svc.auth.service.UserService;
 import com.auth_svc.event.dto.NotificationEvent;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse createUser(UserCreationRequest request) {
-        if (userRepository.existsByUsername(request.getUsername()) || userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByUsername(request.getUsername())
+                || userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
@@ -55,7 +57,7 @@ public class UserServiceImpl implements UserService {
 
         try {
             user = userRepository.save(user);
-        } catch (DataIntegrityViolationException exception){
+        } catch (DataIntegrityViolationException exception) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
@@ -74,16 +76,14 @@ public class UserServiceImpl implements UserService {
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String name = context.getAuthentication().getName();
-        User user = userRepository.findByUsername(name)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return toUserResponse(user);
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         updateUserFromRequest(user, request);
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -103,17 +103,14 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
         log.info("In method get Users");
-        return userRepository.findAll().stream()
-                .map(this::toUserResponse)
-                .collect(Collectors.toList());
+        return userRepository.findAll().stream().map(this::toUserResponse).collect(Collectors.toList());
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse getUser(String id) {
         return toUserResponse(
-                userRepository.findById(id)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+                userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
     }
 
     private User toUser(UserCreationRequest request) {
@@ -132,9 +129,9 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserResponse toUserResponse(User user) {
-        Set<RoleResponse> roleResponses = user.getRoles() == null ? Set.of() : user.getRoles().stream()
-                .map(this::toRoleResponse)
-                .collect(Collectors.toSet());
+        Set<RoleResponse> roleResponses = user.getRoles() == null
+                ? Set.of()
+                : user.getRoles().stream().map(this::toRoleResponse).collect(Collectors.toSet());
 
         return UserResponse.builder()
                 .id(user.getId())
@@ -146,9 +143,9 @@ public class UserServiceImpl implements UserService {
     }
 
     private RoleResponse toRoleResponse(Role role) {
-        Set<PermissionResponse> permissionResponses = role.getPermissions() == null ? Set.of() : role.getPermissions().stream()
-                .map(this::toPermissionResponse)
-                .collect(Collectors.toSet());
+        Set<PermissionResponse> permissionResponses = role.getPermissions() == null
+                ? Set.of()
+                : role.getPermissions().stream().map(this::toPermissionResponse).collect(Collectors.toSet());
         return RoleResponse.builder()
                 .name(role.getName())
                 .description(role.getDescription())
@@ -163,5 +160,3 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 }
-
-

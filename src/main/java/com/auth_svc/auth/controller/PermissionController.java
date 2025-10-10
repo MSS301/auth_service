@@ -2,13 +2,12 @@ package com.auth_svc.auth.controller;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.*;
+
 import com.auth_svc.auth.dto.request.PermissionRequest;
 import com.auth_svc.auth.dto.response.ApiResponse;
 import com.auth_svc.auth.dto.response.PermissionResponse;
 import com.auth_svc.auth.service.PermissionService;
-import org.springframework.web.bind.annotation.*;
-
-
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

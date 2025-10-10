@@ -2,14 +2,15 @@ package com.auth_svc.auth.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
 import com.auth_svc.auth.dto.request.UserRequest;
 import com.auth_svc.auth.dto.response.ApiResponse;
 import com.auth_svc.auth.dto.response.UserResponse;
 import com.auth_svc.auth.service.UserService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import java.util.UUID;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    ApiResponse<UserResponse> update(@PathVariable("id") String id, @RequestBody com.auth_svc.auth.dto.request.UserUpdateRequest request) {
+    ApiResponse<UserResponse> update(
+            @PathVariable("id") String id, @RequestBody com.auth_svc.auth.dto.request.UserUpdateRequest request) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUser(id, request))
                 .build();
