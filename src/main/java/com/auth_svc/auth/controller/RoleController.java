@@ -2,13 +2,12 @@ package com.auth_svc.auth.controller;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.*;
+
 import com.auth_svc.auth.dto.request.RoleRequest;
 import com.auth_svc.auth.dto.response.ApiResponse;
 import com.auth_svc.auth.dto.response.RoleResponse;
 import com.auth_svc.auth.service.RoleService;
-import org.springframework.web.bind.annotation.*;
-
-
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

@@ -2,18 +2,17 @@ package com.auth_svc.auth.configuration;
 
 import java.util.HashSet;
 
-import com.auth_svc.auth.constant.PredefinedRole;
-import com.auth_svc.auth.entity.Role;
-import com.auth_svc.auth.entity.User;
-import com.auth_svc.auth.repository.RoleRepository;
-import com.auth_svc.auth.repository.UserRepository;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-
+import com.auth_svc.auth.constant.PredefinedRole;
+import com.auth_svc.auth.entity.Role;
+import com.auth_svc.auth.entity.User;
+import com.auth_svc.auth.repository.RoleRepository;
+import com.auth_svc.auth.repository.UserRepository;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

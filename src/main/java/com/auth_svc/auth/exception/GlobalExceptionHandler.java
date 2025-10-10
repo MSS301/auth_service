@@ -3,15 +3,15 @@ package com.auth_svc.auth.exception;
 import java.util.Map;
 import java.util.Objects;
 
-import com.auth_svc.auth.dto.response.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.auth_svc.auth.dto.response.ApiResponse;
 
 import lombok.extern.slf4j.Slf4j;
 

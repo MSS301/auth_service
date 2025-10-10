@@ -1,17 +1,20 @@
 package com.auth_svc.auth.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.auth_svc.auth.dto.request.PermissionRequest;
 import com.auth_svc.auth.dto.response.PermissionResponse;
 import com.auth_svc.auth.entity.Permission;
 import com.auth_svc.auth.repository.PermissionRepository;
 import com.auth_svc.auth.service.PermissionService;
-import java.util.List;
-import java.util.stream.Collectors;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,9 +35,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public List<PermissionResponse> getAll() {
         var permissions = permissionRepository.findAll();
-        return permissions.stream()
-                .map(this::toPermissionResponse)
-                .collect(Collectors.toList());
+        return permissions.stream().map(this::toPermissionResponse).collect(Collectors.toList());
     }
 
     @Override
@@ -50,5 +51,3 @@ public class PermissionServiceImpl implements PermissionService {
         return response;
     }
 }
-
-
