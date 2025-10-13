@@ -163,7 +163,7 @@ Added 7 new error codes:
 
 ### Tables
 1. **schools** - School information
-2. **users** - User profiles (linked to auth accounts)
+2. **user_profiles** - User profiles (linked to auth accounts)
 3. **classes** - Class/course information
 4. **class_students** - Student enrollment records
 
