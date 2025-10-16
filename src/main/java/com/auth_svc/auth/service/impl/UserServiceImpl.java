@@ -25,6 +25,8 @@ import com.auth_svc.auth.exception.ErrorCode;
 import com.auth_svc.auth.repository.RoleRepository;
 import com.auth_svc.auth.repository.UserRepository;
 import com.auth_svc.auth.service.UserService;
+import com.auth_svc.event.UserEventProducer;
+import com.auth_svc.event.UserRegisteredEvent;
 import com.auth_svc.event.dto.NotificationEvent;
 
 import lombok.AccessLevel;
@@ -40,6 +42,7 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
+    UserEventProducer userEventProducer;
 
     @Override
     public UserResponse createUser(UserCreationRequest request) {
@@ -60,6 +63,15 @@ public class UserServiceImpl implements UserService {
         } catch (DataIntegrityViolationException exception) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
+
+        // Publish user.registered event to Kafka
+        UserRegisteredEvent userRegisteredEvent = UserRegisteredEvent.builder()
+                .userId(Integer.parseInt(user.getId()))
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        userEventProducer.publishUserRegisteredEvent(userRegisteredEvent);
 
         NotificationEvent notificationEvent = NotificationEvent.builder()
                 .channel("EMAIL")
