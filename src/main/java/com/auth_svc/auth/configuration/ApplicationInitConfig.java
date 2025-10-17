@@ -38,7 +38,7 @@ public class ApplicationInitConfig {
     @ConditionalOnProperty(
             prefix = "spring",
             value = "datasource.driverClassName",
-            havingValue = "com.mysql.cj.jdbc.Driver")
+            havingValue = "org.postgresql.Driver")
     ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository) {
         log.info("Initializing application.....");
         return args -> {
@@ -58,6 +58,7 @@ public class ApplicationInitConfig {
 
                 User user = User.builder()
                         .username(ADMIN_USER_NAME)
+                        .email("admin@example.com")
                         .emailVerified(true)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
                         .roles(roles)

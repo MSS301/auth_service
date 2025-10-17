@@ -10,7 +10,7 @@ import com.auth_svc.auth.entity.UserProfile;
 
 @Repository
 public interface UserProfileRepository extends JpaRepository<UserProfile, Integer> {
-    Optional<UserProfile> findByAccountId(Integer accountId);
+    Optional<UserProfile> findByAccountId(String accountId);
 
     List<UserProfile> findBySchoolId(Integer schoolId);
 
@@ -18,5 +18,5 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Intege
 
     List<UserProfile> findBySchoolIdAndRole(Integer schoolId, String role);
 
-    boolean existsByAccountId(Integer accountId);
+    boolean existsByAccountId(String accountId);
 }

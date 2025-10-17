@@ -68,7 +68,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    public UserProfileResponse getUserProfileByAccountId(Integer accountId) {
+    public UserProfileResponse getUserProfileByAccountId(String accountId) {
         log.info("Getting user profile by account ID: {}", accountId);
         UserProfile userProfile = userProfileRepository
                 .findByAccountId(accountId)

@@ -12,7 +12,7 @@ public interface UserProfileService {
 
     UserProfileResponse getUserProfileById(Integer id);
 
-    UserProfileResponse getUserProfileByAccountId(Integer accountId);
+    UserProfileResponse getUserProfileByAccountId(String accountId);
 
     List<UserProfileResponse> getAllUserProfiles();
 

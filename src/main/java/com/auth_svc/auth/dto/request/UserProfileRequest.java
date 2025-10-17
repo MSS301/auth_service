@@ -16,7 +16,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserProfileRequest {
     @NotNull(message = "Account ID is required")
-    Integer accountId;
+    String accountId;
 
     Integer schoolId;
 
