@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserProfileResponse {
     Integer id;
-    Integer accountId;
+    String accountId;
     Integer schoolId;
     String schoolName;
     String fullName;

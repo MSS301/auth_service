@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
 
         // Publish user.registered event to Kafka
         UserRegisteredEvent userRegisteredEvent = UserRegisteredEvent.builder()
-                .userId(Integer.parseInt(user.getId()))
+                .userId(user.getId())
                 .email(user.getEmail())
                 .username(user.getUsername())
                 .timestamp(java.time.LocalDateTime.now())

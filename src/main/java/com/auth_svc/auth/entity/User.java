@@ -32,5 +32,9 @@ public class User {
     boolean emailVerified;
 
     @ManyToMany
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id", columnDefinition = "VARCHAR(255)"),
+            inverseJoinColumns = @JoinColumn(name = "role_name", columnDefinition = "VARCHAR(255)"))
     Set<Role> roles;
 }

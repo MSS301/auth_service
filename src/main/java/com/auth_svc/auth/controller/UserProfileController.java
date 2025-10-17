@@ -42,7 +42,7 @@ public class UserProfileController {
     }
 
     @GetMapping("/account/{accountId}")
-    public ApiResponse<UserProfileResponse> getUserProfileByAccountId(@PathVariable Integer accountId) {
+    public ApiResponse<UserProfileResponse> getUserProfileByAccountId(@PathVariable String accountId) {
         log.info("REST request to get user profile by account ID: {}", accountId);
         return ApiResponse.<UserProfileResponse>builder()
                 .result(userProfileService.getUserProfileByAccountId(accountId))

@@ -22,8 +22,8 @@ public class UserProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "account_id", nullable = false)
-    Integer accountId; // link to Auth service User table
+    @Column(name = "account_id", nullable = false, length = 255)
+    String accountId; // link to Auth service User table (UUID)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id")

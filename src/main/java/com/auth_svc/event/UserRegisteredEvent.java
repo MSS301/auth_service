@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserRegisteredEvent {
     @JsonProperty("user_id")
-    private Integer userId;
+    private String userId;
 
     @JsonProperty("email")
     private String email;
