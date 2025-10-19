@@ -25,8 +25,7 @@ public class SecurityConfig {
             "/auth/logout",
             "/auth/refresh",
             "/hello",
-            "/users",
-            "/v3/api-docs/**",      // Changed
+            "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html"
     };
@@ -40,15 +39,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINTS)
-                .permitAll()
-                .anyRequest()
-                .authenticated());
+        httpSecurity.authorizeHttpRequests(request -> request
+                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                // For requests from API Gateway, trust the JWT
+                // Gateway already validated authentication
+                .anyRequest().authenticated());
 
-        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
+        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwtConfigurer -> jwtConfigurer
                         .decoder(customJwtDecoder)
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
+
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
         return httpSecurity.build();
