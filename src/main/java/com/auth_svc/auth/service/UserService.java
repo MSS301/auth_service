@@ -18,4 +18,6 @@ public interface UserService {
     UserResponse getUser(String id);
 
     UserResponse getMyInfo();
+
+    UserResponse promoteToTeacher(String userId);
 }
