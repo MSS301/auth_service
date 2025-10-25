@@ -12,6 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -19,15 +22,19 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
-        "/users",
-        "/auth/token",
-        "/auth/introspect",
-        "/auth/logout",
-        "/auth/refresh",
-        "/hello",
-        "/v3/api-docs/**",
-        "/swagger-ui/**",
-        "/swagger-ui.html"
+            "/users",
+            "/auth/token",
+            "/auth/introspect",
+            "/auth/logout",
+            "/auth/refresh",
+            "/auth/email-verification",
+            "/auth/resend-verification",
+            "/auth/google",
+            "/auth/oauth2/**",
+            "/hello",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
     };
 
     @Autowired
@@ -39,19 +46,31 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINTS)
-                .permitAll()
-                // For requests from API Gateway, trust the JWT
-                // Gateway already validated authentication
-                .anyRequest()
-                .authenticated());
+        // Create request matcher for OAuth2 login endpoints only
+        RequestMatcher oauth2LoginMatcher = new OrRequestMatcher(
+                new AntPathRequestMatcher("/oauth2/authorization/**"),
+                new AntPathRequestMatcher("/login/oauth2/code/**")
+        );
 
-        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
-                        .decoder(customJwtDecoder)
-                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
+        httpSecurity
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .anyRequest().authenticated())
 
-        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+                // Apply OAuth2 login ONLY to specific OAuth2 endpoints
+                .oauth2Login(oauth2 -> oauth2
+                        .loginProcessingUrl("/login/oauth2/code/*")
+                        .defaultSuccessUrl("/auth/oauth2/success", true)
+                        .failureUrl("/auth/oauth2/failure")
+                        .permitAll())
+
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwtConfigurer -> jwtConfigurer
+                                .decoder(customJwtDecoder)
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
+
+                .csrf(AbstractHttpConfigurer::disable);
 
         return httpSecurity.build();
     }
