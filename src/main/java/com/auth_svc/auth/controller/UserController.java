@@ -65,4 +65,11 @@ public class UserController {
         userService.deleteUser(id);
         return ApiResponse.<String>builder().result("User has been deleted").build();
     }
+
+    @PostMapping("/{id}/promote/teacher")
+    ApiResponse<UserResponse> promoteToTeacher(@PathVariable("id") String id) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.promoteToTeacher(id))
+                .build();
+    }
 }
