@@ -2,11 +2,14 @@ package com.auth_svc.auth.service.impl;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
 
+import com.auth_svc.event.UserEventProducer;
+import com.auth_svc.event.UserRegisteredEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +30,7 @@ import com.auth_svc.auth.exception.ErrorCode;
 import com.auth_svc.auth.repository.InvalidatedTokenRepository;
 import com.auth_svc.auth.repository.UserRepository;
 import com.auth_svc.auth.service.AuthenticationService;
+import com.auth_svc.auth.service.EmailService;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -46,6 +50,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthenticationServiceImpl implements AuthenticationService {
     UserRepository userRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
+    EmailService emailService;
+    UserEventProducer userEventProducer;
 
     @NonFinal
     @Value("${jwt.signerKey}")
@@ -77,16 +83,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         var user = userRepository
-                .findByUsername(request.getUsername())
+                .findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
+        // Check if email is verified
+        if (!user.isEmailVerified()) {
+            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
         var token = generateToken(user);
 
-        return AuthenticationResponse.builder().token(token).build();
+        // Send sign-in notification email
+        try {
+            emailService.sendSignInEmail(user.getEmail(), user.getUsername());
+        } catch (Exception ex) {
+            log.warn("Sign-in email failed for {}: {}", user.getEmail(), ex.getMessage());
+        }
+
+        return AuthenticationResponse.builder()
+                .token(token)
+                .expiryTime(new Date(
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
+                .build();
     }
 
     @Override
@@ -120,14 +142,63 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         invalidatedTokenRepository.save(invalidatedToken);
 
-        var username = signedJWT.getJWTClaimsSet().getSubject();
+        var userId = signedJWT.getJWTClaimsSet().getSubject();
 
-        var user =
-                userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+        var user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
         var token = generateToken(user);
 
-        return AuthenticationResponse.builder().token(token).build();
+        return AuthenticationResponse.builder()
+                .token(token)
+                .expiryTime(new Date(
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void verifyEmail(String request) {
+        User user = userRepository
+                .findByVerificationToken(request)
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_VERIFICATION_TOKEN));
+
+        if (user.getVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.INVALID_VERIFICATION_TOKEN);
+        }
+
+        user.setEmailVerified(true);
+        user.setVerificationToken(null);
+        user.setVerificationTokenExpiry(null);
+
+        userRepository.save(user);
+        UserRegisteredEvent userRegisteredEvent = UserRegisteredEvent.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .timestamp(LocalDateTime.now())
+                .build();
+        userEventProducer.publishUserRegisteredEvent(userRegisteredEvent);
+        log.info("Email verified successfully for user: {}", user.getEmail());
+    }
+
+    @Override
+    @Transactional
+    public void resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.isEmailVerified()) {
+            log.info("Email already verified for user: {}", email);
+            return;
+        }
+
+        String verificationToken = UUID.randomUUID().toString();
+        user.setVerificationToken(verificationToken);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+
+        userRepository.save(user);
+
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), verificationToken);
+        log.info("Verification email resent to: {}", email);
     }
 
     private String generateToken(User user) {
@@ -135,12 +206,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getId())
-                .issuer("devteria.com")
+                .issuer("school.edu")
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
+                .claim("email", user.getEmail())
+                .claim("emailVerified", user.isEmailVerified())
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -183,12 +256,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
 
-        if (!CollectionUtils.isEmpty(user.getRoles()))
-            user.getRoles().forEach(role -> {
-                stringJoiner.add("ROLE_" + role.getName());
-                if (!CollectionUtils.isEmpty(role.getPermissions()))
-                    role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
-            });
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
+            user.getRoles().forEach(role -> stringJoiner.add("ROLE_" + role.getName()));
+        }
 
         return stringJoiner.toString();
     }
