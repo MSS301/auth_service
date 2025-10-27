@@ -8,8 +8,6 @@ import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
 
-import com.auth_svc.event.UserEventProducer;
-import com.auth_svc.event.UserRegisteredEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +29,8 @@ import com.auth_svc.auth.repository.InvalidatedTokenRepository;
 import com.auth_svc.auth.repository.UserRepository;
 import com.auth_svc.auth.service.AuthenticationService;
 import com.auth_svc.auth.service.EmailService;
+import com.auth_svc.event.UserEventProducer;
+import com.auth_svc.event.UserRegisteredEvent;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -97,12 +97,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         var token = generateToken(user);
 
-        // Send sign-in notification email
-        try {
-            emailService.sendSignInEmail(user.getEmail(), user.getUsername());
-        } catch (Exception ex) {
-            log.warn("Sign-in email failed for {}: {}", user.getEmail(), ex.getMessage());
-        }
+        //        // Send sign-in notification email
+        //        try {
+        //            emailService.sendSignInEmail(user.getEmail(), user.getUsername());
+        //        } catch (Exception ex) {
+        //            log.warn("Sign-in email failed for {}: {}", user.getEmail(), ex.getMessage());
+        //        }
 
         return AuthenticationResponse.builder()
                 .token(token)

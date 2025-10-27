@@ -104,9 +104,8 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
 
         return AuthenticationResponse.builder()
                 .token(token)
-                .expiryTime(new Date(Instant.now()
-                        .plus(VALID_DURATION, ChronoUnit.SECONDS)
-                        .toEpochMilli()))
+                .expiryTime(new Date(
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
                 .build();
     }
 

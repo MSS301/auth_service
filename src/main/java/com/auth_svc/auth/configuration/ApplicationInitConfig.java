@@ -49,7 +49,7 @@ public class ApplicationInitConfig {
     @Bean
     @ConditionalOnProperty(
             prefix = "spring.datasource",
-            name = "driver-class-name",  // Changed from driverClassName
+            name = "driver-class-name", // Changed from driverClassName
             havingValue = "org.postgresql.Driver")
     ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository) {
         return args -> {
@@ -59,7 +59,8 @@ public class ApplicationInitConfig {
 
             try {
                 // Create roles if they don't exist
-                Role userRole = roleRepository.findById(PredefinedRole.USER_ROLE)
+                Role userRole = roleRepository
+                        .findById(PredefinedRole.USER_ROLE)
                         .orElseGet(() -> {
                             log.info("Creating USER role");
                             return roleRepository.save(Role.builder()
@@ -69,7 +70,8 @@ public class ApplicationInitConfig {
                         });
                 log.info("✓ USER role ready");
 
-                Role teacherRole = roleRepository.findById(PredefinedRole.TEACHER_ROLE)
+                Role teacherRole = roleRepository
+                        .findById(PredefinedRole.TEACHER_ROLE)
                         .orElseGet(() -> {
                             log.info("Creating TEACHER role");
                             return roleRepository.save(Role.builder()
@@ -79,7 +81,8 @@ public class ApplicationInitConfig {
                         });
                 log.info("✓ TEACHER role ready");
 
-                Role adminRole = roleRepository.findById(PredefinedRole.ADMIN_ROLE)
+                Role adminRole = roleRepository
+                        .findById(PredefinedRole.ADMIN_ROLE)
                         .orElseGet(() -> {
                             log.info("Creating ADMIN role");
                             return roleRepository.save(Role.builder()
