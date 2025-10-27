@@ -18,4 +18,8 @@ public interface AuthenticationService {
     void logout(LogoutRequest request) throws ParseException, JOSEException;
 
     AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException;
+
+    void verifyEmail(String request);
+
+    void resendVerificationEmail(String email);
 }

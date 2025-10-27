@@ -25,6 +25,9 @@ public enum ErrorCode {
     CLASS_NOT_FOUND(1014, "Class not found", HttpStatus.NOT_FOUND),
     CLASS_STUDENT_NOT_FOUND(1015, "Class student enrollment not found", HttpStatus.NOT_FOUND),
     CLASS_STUDENT_ALREADY_EXISTS(1016, "Student is already enrolled in this class", HttpStatus.CONFLICT),
+    EMAIL_NOT_VERIFIED(1017, "Email not verified", HttpStatus.FORBIDDEN),
+    INVALID_VERIFICATION_TOKEN(1018, "Invalid or expired verification token", HttpStatus.BAD_REQUEST),
+    GOOGLE_AUTH_FAILED(1019, "Google authentication failed", HttpStatus.UNAUTHORIZED),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
