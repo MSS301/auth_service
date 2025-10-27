@@ -9,9 +9,11 @@ import com.auth_svc.auth.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
-    boolean existsByUsername(String username);
-
     boolean existsByEmail(String email);
 
-    Optional<User> findByUsername(String username);
+    Optional<User> findByEmail(String email);
+
+    Optional<User> findByGoogleId(String googleId);
+
+    Optional<User> findByVerificationToken(String token);
 }

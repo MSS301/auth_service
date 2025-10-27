@@ -1,5 +1,6 @@
 package com.auth_svc.auth.entity;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import jakarta.persistence.*;
@@ -20,16 +21,33 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
-    @Column(name = "username", unique = true)
+    @Column(name = "username")
     String username;
 
+    @Column(name = "password")
     String password;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "email", unique = true, nullable = false)
     String email;
 
     @Column(name = "email_verified", nullable = false, columnDefinition = "boolean default false")
     boolean emailVerified;
+
+    @Column(name = "verification_token")
+    String verificationToken;
+
+    @Column(name = "verification_token_expiry")
+    LocalDateTime verificationTokenExpiry;
+
+    @Column(name = "google_id")
+    String googleId;
+
+    @Column(name = "avatar_url")
+    String avatarUrl;
+
+    @Column(name = "auth_provider")
+    @Enumerated(EnumType.STRING)
+    AuthProvider authProvider;
 
     @ManyToMany
     @JoinTable(
@@ -37,4 +55,29 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id", columnDefinition = "VARCHAR(255)"),
             inverseJoinColumns = @JoinColumn(name = "role_name", columnDefinition = "VARCHAR(255)"))
     Set<Role> roles;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (authProvider == null) {
+            authProvider = AuthProvider.LOCAL;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    public enum AuthProvider {
+        LOCAL,
+        GOOGLE
+    }
 }

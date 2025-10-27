@@ -1,8 +1,10 @@
 package com.auth_svc.auth.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -10,24 +12,23 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.auth_svc.auth.constant.PredefinedRole;
 import com.auth_svc.auth.dto.request.UserCreationRequest;
 import com.auth_svc.auth.dto.request.UserUpdateRequest;
-import com.auth_svc.auth.dto.response.PermissionResponse;
 import com.auth_svc.auth.dto.response.RoleResponse;
 import com.auth_svc.auth.dto.response.UserResponse;
-import com.auth_svc.auth.entity.Permission;
 import com.auth_svc.auth.entity.Role;
 import com.auth_svc.auth.entity.User;
 import com.auth_svc.auth.exception.AppException;
 import com.auth_svc.auth.exception.ErrorCode;
 import com.auth_svc.auth.repository.RoleRepository;
 import com.auth_svc.auth.repository.UserRepository;
+import com.auth_svc.auth.service.EmailService;
 import com.auth_svc.auth.service.UserService;
 import com.auth_svc.event.UserEventProducer;
 import com.auth_svc.event.UserRegisteredEvent;
-import com.auth_svc.event.dto.NotificationEvent;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -43,11 +44,12 @@ public class UserServiceImpl implements UserService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     UserEventProducer userEventProducer;
+    EmailService emailService;
 
     @Override
+    @Transactional
     public UserResponse createUser(UserCreationRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())
-                || userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
@@ -57,6 +59,12 @@ public class UserServiceImpl implements UserService {
         roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
         user.setRoles(roles);
         user.setEmailVerified(false);
+        user.setAuthProvider(User.AuthProvider.LOCAL);
+
+        // Generate verification token
+        String verificationToken = UUID.randomUUID().toString();
+        user.setVerificationToken(verificationToken);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
 
         try {
             user = userRepository.save(user);
@@ -64,22 +72,17 @@ public class UserServiceImpl implements UserService {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
+        // Send verification email
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), verificationToken);
+
         // Publish user.registered event to Kafka
         UserRegisteredEvent userRegisteredEvent = UserRegisteredEvent.builder()
                 .userId(user.getId())
                 .email(user.getEmail())
                 .username(user.getUsername())
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
         userEventProducer.publishUserRegisteredEvent(userRegisteredEvent);
-
-        NotificationEvent notificationEvent = NotificationEvent.builder()
-                .channel("EMAIL")
-                .recipient(request.getEmail())
-                .subject("Welcome to Microservice Architecture")
-                .body("Hello, " + request.getUsername())
-                .build();
-        // Optionally publish notificationEvent
 
         return toUserResponse(user);
     }
@@ -87,26 +90,30 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
-        String name = context.getAuthentication().getName();
-        User user = userRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        String userId = context.getAuthentication().getName();
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return toUserResponse(user);
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         updateUserFromRequest(user, request);
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
-        var roles = roleRepository.findAllById(request.getRoles());
-        user.setRoles(new HashSet<>(roles));
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            var roles = roleRepository.findAllById(request.getRoles());
+            user.setRoles(new HashSet<>(roles));
+        }
         return toUserResponse(userRepository.save(user));
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public void deleteUser(String userId) {
         userRepository.deleteById(userId);
     }
@@ -123,6 +130,31 @@ public class UserServiceImpl implements UserService {
     public UserResponse getUser(String id) {
         return toUserResponse(
                 userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public UserResponse promoteToTeacher(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        // Ensure roles set exists
+        if (user.getRoles() == null) {
+            user.setRoles(new HashSet<>());
+        }
+
+        // Get or create TEACHER role
+        Role teacherRole = roleRepository.findById(PredefinedRole.TEACHER_ROLE).orElseGet(() -> {
+            Role r = new Role();
+            r.setName(PredefinedRole.TEACHER_ROLE);
+            r.setDescription("Teacher role");
+            return roleRepository.save(r);
+        });
+
+        user.getRoles().add(teacherRole);
+        user = userRepository.save(user);
+
+        return toUserResponse(user);
     }
 
     private User toUser(UserCreationRequest request) {
@@ -150,25 +182,16 @@ public class UserServiceImpl implements UserService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .emailVerified(user.isEmailVerified())
+                .avatarUrl(user.getAvatarUrl())
+                .authProvider(user.getAuthProvider())
                 .roles(roleResponses)
                 .build();
     }
 
     private RoleResponse toRoleResponse(Role role) {
-        Set<PermissionResponse> permissionResponses = role.getPermissions() == null
-                ? Set.of()
-                : role.getPermissions().stream().map(this::toPermissionResponse).collect(Collectors.toSet());
         return RoleResponse.builder()
                 .name(role.getName())
                 .description(role.getDescription())
-                .permissions(permissionResponses)
-                .build();
-    }
-
-    private PermissionResponse toPermissionResponse(Permission permission) {
-        return PermissionResponse.builder()
-                .name(permission.getName())
-                .description(permission.getDescription())
                 .build();
     }
 }

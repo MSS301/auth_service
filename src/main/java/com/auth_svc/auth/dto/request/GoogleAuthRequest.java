@@ -11,11 +11,15 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AuthenticationRequest {
+public class GoogleAuthRequest {
+    @NotBlank(message = "Google ID is required")
+    String googleId;
+
     @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @Email(message = "Email must be valid")
     String email;
 
-    @NotBlank(message = "Password is required")
-    String password;
+    String name;
+
+    String picture;
 }
