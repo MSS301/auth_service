@@ -4,6 +4,8 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.auth_svc.auth.dto.request.UserProfileRequest;
@@ -30,6 +32,17 @@ public class UserProfileController {
         log.info("REST request to create user profile");
         return ApiResponse.<UserProfileResponse>builder()
                 .result(userProfileService.createUserProfile(request))
+                .build();
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<UserProfileResponse> getCurrentUserProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = authentication.getName(); // This gets the "sub" claim from JWT
+
+        log.info("REST request to get current user profile for user ID: {}", currentUserId);
+        return ApiResponse.<UserProfileResponse>builder()
+                .result(userProfileService.getUserProfileByAccountId(currentUserId))
                 .build();
     }
 
