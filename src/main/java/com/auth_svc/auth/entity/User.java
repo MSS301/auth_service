@@ -62,6 +62,12 @@ public class User {
     @Column(name = "updated_at")
     LocalDateTime updatedAt;
 
+    @Column(name = "deleted", nullable = false, columnDefinition = "boolean default false")
+    boolean deleted;
+
+    @Column(name = "deleted_at")
+    LocalDateTime deletedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -74,6 +80,11 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public void softDelete() {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
     }
 
     public enum AuthProvider {

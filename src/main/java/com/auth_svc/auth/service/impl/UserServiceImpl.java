@@ -2,14 +2,14 @@ package com.auth_svc.auth.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,13 +87,14 @@ public class UserServiceImpl implements UserService {
         return toUserResponse(user);
     }
 
-    @Override
-    public UserResponse getMyInfo() {
-        var context = SecurityContextHolder.getContext();
-        String userId = context.getAuthentication().getName();
-        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        return toUserResponse(user);
-    }
+    //    @Override
+    //    public UserResponse getMyInfo() {
+    //        var context = SecurityContextHolder.getContext();
+    //        String userId = context.getAuthentication().getName();
+    //        User user = userRepository.findById(userId).orElseThrow(() -> new
+    // AppException(ErrorCode.USER_NOT_EXISTED));
+    //        return toUserResponse(user);
+    //    }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
@@ -115,14 +116,39 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void deleteUser(String userId) {
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        user.softDelete();
+        userRepository.save(user);
+    }
+
+    //    @Override
+    //    @PreAuthorize("hasRole('ADMIN')")
+    //    public List<UserResponse> getUsers() {
+    //        log.info("In method get Users");
+    //        return userRepository.findAll().stream().map(this::toUserResponse).collect(Collectors.toList());
+    //    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<UserResponse> getUsers(Pageable pageable) {
+        log.info("In method get Users with pagination");
+        return userRepository.findAll(pageable).map(this::toUserResponse);
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public List<UserResponse> getUsers() {
-        log.info("In method get Users");
-        return userRepository.findAll().stream().map(this::toUserResponse).collect(Collectors.toList());
+    public Page<UserResponse> searchUsersByEmail(String email, Pageable pageable) {
+        log.info("Searching users by email: {} with pagination", email);
+        return userRepository.findByEmailContainingIgnoreCase(email, pageable).map(this::toUserResponse);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<UserResponse> searchUsersByUsername(String username, Pageable pageable) {
+        log.info("Searching users by username: {} with pagination", username);
+        return userRepository
+                .findByUsernameContainingIgnoreCase(username, pageable)
+                .map(this::toUserResponse);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.auth_svc.auth.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.auth_svc.auth.dto.request.UserCreationRequest;
 import com.auth_svc.auth.dto.request.UserUpdateRequest;
@@ -13,11 +14,17 @@ public interface UserService {
 
     void deleteUser(String userId);
 
-    List<UserResponse> getUsers();
+    //    List<UserResponse> getUsers();
+
+    Page<UserResponse> getUsers(Pageable pageable);
+
+    Page<UserResponse> searchUsersByEmail(String email, Pageable pageable);
+
+    Page<UserResponse> searchUsersByUsername(String username, Pageable pageable);
 
     UserResponse getUser(String id);
 
-    UserResponse getMyInfo();
+    //    UserResponse getMyInfo();
 
     UserResponse promoteToTeacher(String userId);
 }
