@@ -1,8 +1,7 @@
 package com.auth_svc.auth.service.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,19 +50,19 @@ public class SchoolServiceImpl implements SchoolService {
         return mapToResponse(school);
     }
 
-    @Override
-    public List<SchoolResponse> getAllSchools() {
-        log.info("Getting all schools");
-        return schoolRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<SchoolResponse> searchSchoolsByName(String name) {
-        log.info("Searching schools by name: {}", name);
-        return schoolRepository.findByNameContainingIgnoreCase(name).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
+    //    @Override
+    //    public List<SchoolResponse> getAllSchools() {
+    //        log.info("Getting all schools");
+    //        return schoolRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+    //    }
+    //
+    //    @Override
+    //    public List<SchoolResponse> searchSchoolsByName(String name) {
+    //        log.info("Searching schools by name: {}", name);
+    //        return schoolRepository.findByNameContainingIgnoreCase(name).stream()
+    //                .map(this::mapToResponse)
+    //                .collect(Collectors.toList());
+    //    }
 
     @Transactional
     @Override
@@ -86,10 +85,24 @@ public class SchoolServiceImpl implements SchoolService {
     @Override
     public void deleteSchool(Integer id) {
         log.info("Deleting school id: {}", id);
-        if (!schoolRepository.existsById(id)) {
-            throw new AppException(ErrorCode.SCHOOL_NOT_FOUND);
-        }
-        schoolRepository.deleteById(id);
+        School school = schoolRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.SCHOOL_NOT_FOUND));
+        school.softDelete();
+        schoolRepository.save(school);
+    }
+
+    @Override
+    public Page<SchoolResponse> getAllSchools(Pageable pageable) {
+        log.info(
+                "Getting all schools with pagination - page: {}, size: {}",
+                pageable.getPageNumber(),
+                pageable.getPageSize());
+        return schoolRepository.findAll(pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<SchoolResponse> searchSchoolsByName(String name, Pageable pageable) {
+        log.info("Searching schools by name: {} with pagination", name);
+        return schoolRepository.findByNameContainingIgnoreCase(name, pageable).map(this::mapToResponse);
     }
 
     private SchoolResponse mapToResponse(School school) {

@@ -1,6 +1,7 @@
 package com.auth_svc.auth.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.auth_svc.auth.dto.request.SchoolRequest;
 import com.auth_svc.auth.dto.response.SchoolResponse;
@@ -11,9 +12,13 @@ public interface SchoolService {
 
     SchoolResponse getSchoolById(Integer id);
 
-    List<SchoolResponse> getAllSchools();
+    //    List<SchoolResponse> getAllSchools();
 
-    List<SchoolResponse> searchSchoolsByName(String name);
+    Page<SchoolResponse> getAllSchools(Pageable pageable);
+
+    //    List<SchoolResponse> searchSchoolsByName(String name);
+
+    Page<SchoolResponse> searchSchoolsByName(String name, Pageable pageable);
 
     SchoolResponse updateSchool(Integer id, SchoolRequest request);
 
