@@ -3,6 +3,8 @@ package com.auth_svc.auth.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,29 +84,29 @@ public class UserProfileServiceImpl implements UserProfileService {
         return userProfileRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    @Override
-    public List<UserProfileResponse> getUserProfilesBySchool(Integer schoolId) {
-        log.info("Getting user profiles by school ID: {}", schoolId);
-        return userProfileRepository.findBySchoolId(schoolId).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<UserProfileResponse> getUserProfilesByRole(String role) {
-        log.info("Getting user profiles by role: {}", role);
-        return userProfileRepository.findByRole(role).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<UserProfileResponse> getUserProfilesBySchoolAndRole(Integer schoolId, String role) {
-        log.info("Getting user profiles by school ID: {} and role: {}", schoolId, role);
-        return userProfileRepository.findBySchoolIdAndRole(schoolId, role).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
+    //    @Override
+    //    public List<UserProfileResponse> getUserProfilesBySchool(Integer schoolId) {
+    //        log.info("Getting user profiles by school ID: {}", schoolId);
+    //        return userProfileRepository.findBySchoolId(schoolId).stream()
+    //                .map(this::mapToResponse)
+    //                .collect(Collectors.toList());
+    //    }
+    //
+    //    @Override
+    //    public List<UserProfileResponse> getUserProfilesByRole(String role) {
+    //        log.info("Getting user profiles by role: {}", role);
+    //        return userProfileRepository.findByRole(role).stream()
+    //                .map(this::mapToResponse)
+    //                .collect(Collectors.toList());
+    //    }
+    //
+    //    @Override
+    //    public List<UserProfileResponse> getUserProfilesBySchoolAndRole(Integer schoolId, String role) {
+    //        log.info("Getting user profiles by school ID: {} and role: {}", schoolId, role);
+    //        return userProfileRepository.findBySchoolIdAndRole(schoolId, role).stream()
+    //                .map(this::mapToResponse)
+    //                .collect(Collectors.toList());
+    //    }
 
     @Transactional
     @Override
@@ -141,10 +143,37 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     public void deleteUserProfile(Integer id) {
         log.info("Deleting user profile id: {}", id);
-        if (!userProfileRepository.existsById(id)) {
-            throw new AppException(ErrorCode.USER_PROFILE_NOT_FOUND);
-        }
-        userProfileRepository.deleteById(id);
+        UserProfile userProfile = userProfileRepository
+                .findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_PROFILE_NOT_FOUND));
+        userProfile.softDelete();
+        userProfileRepository.save(userProfile);
+    }
+
+    @Override
+    public Page<UserProfileResponse> getAllUserProfiles(Pageable pageable) {
+        log.info("Getting all user profiles with pagination");
+        return userProfileRepository.findAll(pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<UserProfileResponse> getUserProfilesBySchool(Integer schoolId, Pageable pageable) {
+        log.info("Getting user profiles by school ID: {} with pagination", schoolId);
+        return userProfileRepository.findBySchoolId(schoolId, pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<UserProfileResponse> getUserProfilesByRole(String role, Pageable pageable) {
+        log.info("Getting user profiles by role: {} with pagination", role);
+        return userProfileRepository.findByRole(role, pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<UserProfileResponse> getUserProfilesBySchoolAndRole(Integer schoolId, String role, Pageable pageable) {
+        log.info("Getting user profiles by school ID: {} and role: {} with pagination", schoolId, role);
+        return userProfileRepository
+                .findBySchoolIdAndRole(schoolId, role, pageable)
+                .map(this::mapToResponse);
     }
 
     private UserProfileResponse mapToResponse(UserProfile userProfile) {

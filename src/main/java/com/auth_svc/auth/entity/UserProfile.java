@@ -47,6 +47,12 @@ public class UserProfile {
     @Column(name = "updated_at")
     LocalDateTime updatedAt;
 
+    @Column(name = "deleted", nullable = false, columnDefinition = "boolean default false")
+    boolean deleted;
+
+    @Column(name = "deleted_at")
+    LocalDateTime deletedAt;
+
     @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL)
     List<Class> teachingClasses;
 
@@ -62,5 +68,10 @@ public class UserProfile {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public void softDelete() {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
     }
 }
