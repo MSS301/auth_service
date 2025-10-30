@@ -1,9 +1,10 @@
 package com.auth_svc.auth.controller;
 
-import java.util.List;
-
 import jakarta.validation.Valid;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -11,9 +12,12 @@ import org.springframework.web.bind.annotation.*;
 import com.auth_svc.auth.dto.request.UserProfileRequest;
 import com.auth_svc.auth.dto.request.UserProfileUpdateRequest;
 import com.auth_svc.auth.dto.response.ApiResponse;
+import com.auth_svc.auth.dto.response.PaginatedResponse;
 import com.auth_svc.auth.dto.response.UserProfileResponse;
 import com.auth_svc.auth.service.UserProfileService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -63,27 +67,28 @@ public class UserProfileController {
     }
 
     @GetMapping
-    public ApiResponse<List<UserProfileResponse>> getAllUserProfiles(
-            @RequestParam(required = false) Integer schoolId, @RequestParam(required = false) String role) {
-        log.info("REST request to get all user profiles");
+    @Operation(
+            summary = "Get all user profiles",
+            description = "Retrieve paginated list of user profiles with optional filtering by school and/or role")
+    public PaginatedResponse<UserProfileResponse> getAllUserProfiles(
+            @Parameter(description = "Filter by school ID") @RequestParam(required = false) Integer schoolId,
+            @Parameter(description = "Filter by role") @RequestParam(required = false) String role,
+            @Parameter(description = "Pagination parameters") @PageableDefault(size = 20, sort = "id")
+                    Pageable pageable) {
+        log.info("REST request to get all user profiles with pagination");
 
+        Page<UserProfileResponse> userProfiles;
         if (schoolId != null && role != null) {
-            return ApiResponse.<List<UserProfileResponse>>builder()
-                    .result(userProfileService.getUserProfilesBySchoolAndRole(schoolId, role))
-                    .build();
+            userProfiles = userProfileService.getUserProfilesBySchoolAndRole(schoolId, role, pageable);
         } else if (schoolId != null) {
-            return ApiResponse.<List<UserProfileResponse>>builder()
-                    .result(userProfileService.getUserProfilesBySchool(schoolId))
-                    .build();
+            userProfiles = userProfileService.getUserProfilesBySchool(schoolId, pageable);
         } else if (role != null) {
-            return ApiResponse.<List<UserProfileResponse>>builder()
-                    .result(userProfileService.getUserProfilesByRole(role))
-                    .build();
+            userProfiles = userProfileService.getUserProfilesByRole(role, pageable);
+        } else {
+            userProfiles = userProfileService.getAllUserProfiles(pageable);
         }
 
-        return ApiResponse.<List<UserProfileResponse>>builder()
-                .result(userProfileService.getAllUserProfiles())
-                .build();
+        return PaginatedResponse.of(userProfiles);
     }
 
     @PutMapping("/{id}")
