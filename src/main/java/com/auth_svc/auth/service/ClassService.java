@@ -1,6 +1,7 @@
 package com.auth_svc.auth.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.auth_svc.auth.dto.request.ClassRequest;
 import com.auth_svc.auth.dto.response.ClassResponse;
@@ -11,15 +12,27 @@ public interface ClassService {
 
     ClassResponse getClassById(Integer id);
 
-    List<ClassResponse> getAllClasses();
+    //    List<ClassResponse> getAllClasses();
 
-    List<ClassResponse> getClassesBySchool(Integer schoolId);
+    Page<ClassResponse> getAllClasses(Pageable pageable);
 
-    List<ClassResponse> getClassesByTeacher(Integer teacherId);
+    //    List<ClassResponse> getClassesBySchool(Integer schoolId);
 
-    List<ClassResponse> getClassesByGrade(Integer grade);
+    Page<ClassResponse> getClassesBySchool(Integer schoolId, Pageable pageable);
 
-    List<ClassResponse> getClassesBySchoolAndGrade(Integer schoolId, Integer grade);
+    //    List<ClassResponse> getClassesByTeacher(Integer teacherId);
+
+    Page<ClassResponse> getClassesByTeacher(Integer teacherId, Pageable pageable);
+
+    //    List<ClassResponse> getClassesByGrade(Integer grade);
+
+    Page<ClassResponse> getClassesByGrade(Integer grade, Pageable pageable);
+
+    //    List<ClassResponse> getClassesBySchoolAndGrade(Integer schoolId, Integer grade);
+
+    Page<ClassResponse> getClassesBySchoolAndGrade(Integer schoolId, Integer grade, Pageable pageable);
+
+    Page<ClassResponse> searchClassesByName(String name, Pageable pageable);
 
     ClassResponse updateClass(Integer id, ClassRequest request);
 

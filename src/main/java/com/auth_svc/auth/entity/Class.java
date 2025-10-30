@@ -1,5 +1,6 @@
 package com.auth_svc.auth.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.*;
@@ -34,6 +35,17 @@ public class Class {
     @JoinColumn(name = "teacher_id")
     UserProfile teacher;
 
+    @Column(name = "deleted", nullable = false, columnDefinition = "boolean default false")
+    boolean deleted;
+
+    @Column(name = "deleted_at")
+    LocalDateTime deletedAt;
+
     @OneToMany(mappedBy = "classEntity", cascade = CascadeType.ALL)
     List<ClassStudent> classStudents;
+
+    public void softDelete() {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
 }
