@@ -1,8 +1,7 @@
 package com.auth_svc.auth.service.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,43 +66,43 @@ public class ClassServiceImpl implements ClassService {
         return mapToResponse(classEntity);
     }
 
-    @Override
-    public List<ClassResponse> getAllClasses() {
-        log.info("Getting all classes");
-        return classRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ClassResponse> getClassesBySchool(Integer schoolId) {
-        log.info("Getting classes by school ID: {}", schoolId);
-        return classRepository.findBySchoolId(schoolId).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ClassResponse> getClassesByTeacher(Integer teacherId) {
-        log.info("Getting classes by teacher ID: {}", teacherId);
-        return classRepository.findByTeacherId(teacherId).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ClassResponse> getClassesByGrade(Integer grade) {
-        log.info("Getting classes by grade: {}", grade);
-        return classRepository.findByGrade(grade).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ClassResponse> getClassesBySchoolAndGrade(Integer schoolId, Integer grade) {
-        log.info("Getting classes by school ID: {} and grade: {}", schoolId, grade);
-        return classRepository.findBySchoolIdAndGrade(schoolId, grade).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
+    //    @Override
+    //    public List<ClassResponse> getAllClasses() {
+    //        log.info("Getting all classes");
+    //        return classRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+    //    }
+    //
+    //    @Override
+    //    public List<ClassResponse> getClassesBySchool(Integer schoolId) {
+    //        log.info("Getting classes by school ID: {}", schoolId);
+    //        return classRepository.findBySchoolId(schoolId).stream()
+    //                .map(this::mapToResponse)
+    //                .collect(Collectors.toList());
+    //    }
+    //
+    //    @Override
+    //    public List<ClassResponse> getClassesByTeacher(Integer teacherId) {
+    //        log.info("Getting classes by teacher ID: {}", teacherId);
+    //        return classRepository.findByTeacherId(teacherId).stream()
+    //                .map(this::mapToResponse)
+    //                .collect(Collectors.toList());
+    //    }
+    //
+    //    @Override
+    //    public List<ClassResponse> getClassesByGrade(Integer grade) {
+    //        log.info("Getting classes by grade: {}", grade);
+    //        return classRepository.findByGrade(grade).stream()
+    //                .map(this::mapToResponse)
+    //                .collect(Collectors.toList());
+    //    }
+    //
+    //    @Override
+    //    public List<ClassResponse> getClassesBySchoolAndGrade(Integer schoolId, Integer grade) {
+    //        log.info("Getting classes by school ID: {} and grade: {}", schoolId, grade);
+    //        return classRepository.findBySchoolIdAndGrade(schoolId, grade).stream()
+    //                .map(this::mapToResponse)
+    //                .collect(Collectors.toList());
+    //    }
 
     @Transactional
     @Override
@@ -138,10 +137,48 @@ public class ClassServiceImpl implements ClassService {
     @Override
     public void deleteClass(Integer id) {
         log.info("Deleting class id: {}", id);
-        if (!classRepository.existsById(id)) {
-            throw new AppException(ErrorCode.CLASS_NOT_FOUND);
-        }
-        classRepository.deleteById(id);
+        Class classEntity = classRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.CLASS_NOT_FOUND));
+        classEntity.softDelete();
+        classRepository.save(classEntity);
+    }
+
+    @Override
+    public Page<ClassResponse> getAllClasses(Pageable pageable) {
+        log.info(
+                "Getting all classes with pagination - page: {}, size: {}",
+                pageable.getPageNumber(),
+                pageable.getPageSize());
+        return classRepository.findAll(pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<ClassResponse> getClassesBySchool(Integer schoolId, Pageable pageable) {
+        log.info("Getting classes by school ID: {} with pagination", schoolId);
+        return classRepository.findBySchoolId(schoolId, pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<ClassResponse> getClassesByTeacher(Integer teacherId, Pageable pageable) {
+        log.info("Getting classes by teacher ID: {} with pagination", teacherId);
+        return classRepository.findByTeacherId(teacherId, pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<ClassResponse> getClassesByGrade(Integer grade, Pageable pageable) {
+        log.info("Getting classes by grade: {} with pagination", grade);
+        return classRepository.findByGrade(grade, pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<ClassResponse> getClassesBySchoolAndGrade(Integer schoolId, Integer grade, Pageable pageable) {
+        log.info("Getting classes by school ID: {} and grade: {} with pagination", schoolId, grade);
+        return classRepository.findBySchoolIdAndGrade(schoolId, grade, pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<ClassResponse> searchClassesByName(String name, Pageable pageable) {
+        log.info("Searching classes by name: {} with pagination", name);
+        return classRepository.findByNameContainingIgnoreCase(name, pageable).map(this::mapToResponse);
     }
 
     private ClassResponse mapToResponse(Class classEntity) {
