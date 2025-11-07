@@ -40,6 +40,9 @@ public interface ClassRepository extends JpaRepository<Class, Integer> {
     @Query("SELECT c FROM Class c WHERE c.name LIKE %:name% AND c.deleted = false")
     Page<Class> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
+    @Query("SELECT c FROM Class c WHERE c.school.id = :schoolId AND c.name LIKE %:name% AND c.deleted = false")
+    List<Class> findBySchoolIdAndNameContainingIgnoreCase(Integer schoolId, String name);
+
     @Query("SELECT c FROM Class c WHERE c.id = :id AND c.deleted = false")
     Optional<Class> findById(Integer id);
 

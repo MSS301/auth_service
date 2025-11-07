@@ -18,5 +18,8 @@ public class ClassRequest {
 
     Integer grade;
 
+    @Size(min = 4, max = 100, message = "Password must be between 4 and 100 characters")
+    String password;
+
     Integer teacherId;
 }

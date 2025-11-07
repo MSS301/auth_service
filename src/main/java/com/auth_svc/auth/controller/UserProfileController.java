@@ -6,9 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import com.auth_svc.auth.dto.request.SelfUserProfileRequest;
 import com.auth_svc.auth.dto.request.UserProfileRequest;
 import com.auth_svc.auth.dto.request.UserProfileUpdateRequest;
 import com.auth_svc.auth.dto.response.ApiResponse;
@@ -36,6 +38,28 @@ public class UserProfileController {
         log.info("REST request to create user profile");
         return ApiResponse.<UserProfileResponse>builder()
                 .result(userProfileService.createUserProfile(request))
+                .build();
+    }
+
+    @PostMapping("/me")
+    @Operation(
+            summary = "Create user profile for current user",
+            description = "Allows a user to create their own profile using their JWT token")
+    public ApiResponse<UserProfileResponse> createSelfUserProfile(@Valid @RequestBody SelfUserProfileRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = authentication.getName(); // This gets the "sub" claim from JWT
+
+        // Extract role from token authorities (remove "ROLE_" prefix)
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(auth -> auth.startsWith("ROLE_"))
+                .map(auth -> auth.substring(5)) // Remove "ROLE_" prefix
+                .findFirst()
+                .orElse(null);
+
+        log.info("REST request for user to create their own profile, user ID: {}, role: {}", currentUserId, role);
+        return ApiResponse.<UserProfileResponse>builder()
+                .result(userProfileService.createSelfUserProfile(request, currentUserId, role))
                 .build();
     }
 
@@ -97,6 +121,19 @@ public class UserProfileController {
         log.info("REST request to update user profile id: {}", id);
         return ApiResponse.<UserProfileResponse>builder()
                 .result(userProfileService.updateUserProfile(id, request))
+                .build();
+    }
+
+    @PutMapping("/me")
+    @Operation(summary = "Update own profile", description = "User updates their own profile using their JWT token")
+    public ApiResponse<UserProfileResponse> updateSelfUserProfile(
+            @Valid @RequestBody UserProfileUpdateRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = authentication.getName();
+
+        log.info("REST request for user to update their own profile, user ID: {}", currentUserId);
+        return ApiResponse.<UserProfileResponse>builder()
+                .result(userProfileService.updateSelfUserProfile(request, currentUserId))
                 .build();
     }
 

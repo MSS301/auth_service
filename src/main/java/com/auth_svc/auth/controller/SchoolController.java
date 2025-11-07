@@ -49,7 +49,6 @@ public class SchoolController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get all schools with pagination",
             description = "Returns paginated list of schools with optional name search")

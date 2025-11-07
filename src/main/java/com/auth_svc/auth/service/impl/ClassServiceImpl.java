@@ -1,11 +1,15 @@
 package com.auth_svc.auth.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.auth_svc.auth.dto.request.ClassRequest;
+import com.auth_svc.auth.dto.request.SelfClassRequest;
 import com.auth_svc.auth.dto.response.ClassResponse;
 import com.auth_svc.auth.entity.Class;
 import com.auth_svc.auth.entity.School;
@@ -39,6 +43,7 @@ public class ClassServiceImpl implements ClassService {
         Class classEntity = Class.builder()
                 .name(request.getName())
                 .grade(request.getGrade())
+                .password(request.getPassword())
                 .build();
 
         if (request.getSchoolId() != null) {
@@ -59,11 +64,53 @@ public class ClassServiceImpl implements ClassService {
         return mapToResponse(classEntity);
     }
 
+    @Transactional
+    @Override
+    public ClassResponse createSelfClass(SelfClassRequest request, String accountId) {
+        log.info("Teacher creating their own class: {}, accountId: {}", request.getName(), accountId);
+
+        // Find teacher's UserProfile by accountId
+        UserProfile teacher = userProfileRepository
+                .findByAccountId(accountId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_PROFILE_NOT_FOUND));
+
+        Class classEntity = Class.builder()
+                .name(request.getName())
+                .grade(request.getGrade())
+                .password(request.getPassword())
+                .teacher(teacher)
+                .build();
+
+        if (request.getSchoolId() != null) {
+            School school = schoolRepository
+                    .findById(request.getSchoolId())
+                    .orElseThrow(() -> new AppException(ErrorCode.SCHOOL_NOT_FOUND));
+            classEntity.setSchool(school);
+        }
+
+        classEntity = classRepository.save(classEntity);
+        log.info("Teacher {} successfully created class {}", accountId, classEntity.getId());
+        return mapToResponse(classEntity);
+    }
+
     @Override
     public ClassResponse getClassById(Integer id) {
         log.info("Getting class by id: {}", id);
         Class classEntity = classRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.CLASS_NOT_FOUND));
         return mapToResponse(classEntity);
+    }
+
+    @Override
+    public List<ClassResponse> getMyClasses(String accountId) {
+        log.info("Getting classes for teacher with accountId: {}", accountId);
+
+        UserProfile teacher = userProfileRepository
+                .findByAccountId(accountId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_PROFILE_NOT_FOUND));
+
+        return classRepository.findByTeacherId(teacher.getId()).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     //    @Override
@@ -115,6 +162,9 @@ public class ClassServiceImpl implements ClassService {
         }
         if (request.getGrade() != null) {
             classEntity.setGrade(request.getGrade());
+        }
+        if (request.getPassword() != null) {
+            classEntity.setPassword(request.getPassword());
         }
         if (request.getSchoolId() != null) {
             School school = schoolRepository
@@ -179,6 +229,14 @@ public class ClassServiceImpl implements ClassService {
     public Page<ClassResponse> searchClassesByName(String name, Pageable pageable) {
         log.info("Searching classes by name: {} with pagination", name);
         return classRepository.findByNameContainingIgnoreCase(name, pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public List<ClassResponse> searchClassesBySchoolAndName(Integer schoolId, String name) {
+        log.info("Searching classes by school ID: {} and name: {}", schoolId, name);
+        return classRepository.findBySchoolIdAndNameContainingIgnoreCase(schoolId, name).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     private ClassResponse mapToResponse(Class classEntity) {

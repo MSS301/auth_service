@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.auth_svc.auth.dto.request.SelfUserProfileRequest;
 import com.auth_svc.auth.dto.request.UserProfileRequest;
 import com.auth_svc.auth.dto.request.UserProfileUpdateRequest;
 import com.auth_svc.auth.dto.response.UserProfileResponse;
@@ -12,6 +13,8 @@ import com.auth_svc.auth.dto.response.UserProfileResponse;
 public interface UserProfileService {
 
     UserProfileResponse createUserProfile(UserProfileRequest request);
+
+    UserProfileResponse createSelfUserProfile(SelfUserProfileRequest request, String accountId, String role);
 
     UserProfileResponse getUserProfileById(Integer id);
 
@@ -34,6 +37,8 @@ public interface UserProfileService {
     Page<UserProfileResponse> getUserProfilesBySchoolAndRole(Integer schoolId, String role, Pageable pageable);
 
     UserProfileResponse updateUserProfile(Integer id, UserProfileUpdateRequest request);
+
+    UserProfileResponse updateSelfUserProfile(UserProfileUpdateRequest request, String accountId);
 
     void deleteUserProfile(Integer id);
 }

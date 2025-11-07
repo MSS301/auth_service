@@ -4,11 +4,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.auth_svc.auth.dto.request.ClassRequest;
+import com.auth_svc.auth.dto.request.SelfClassRequest;
 import com.auth_svc.auth.dto.response.ClassResponse;
 
 public interface ClassService {
 
     ClassResponse createClass(ClassRequest request);
+
+    ClassResponse createSelfClass(SelfClassRequest request, String accountId);
+
+    java.util.List<ClassResponse> getMyClasses(String accountId);
 
     ClassResponse getClassById(Integer id);
 
@@ -33,6 +38,8 @@ public interface ClassService {
     Page<ClassResponse> getClassesBySchoolAndGrade(Integer schoolId, Integer grade, Pageable pageable);
 
     Page<ClassResponse> searchClassesByName(String name, Pageable pageable);
+
+    java.util.List<ClassResponse> searchClassesBySchoolAndName(Integer schoolId, String name);
 
     ClassResponse updateClass(Integer id, ClassRequest request);
 

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.auth_svc.auth.dto.request.SelfUserProfileRequest;
 import com.auth_svc.auth.dto.request.UserProfileRequest;
 import com.auth_svc.auth.dto.request.UserProfileUpdateRequest;
 import com.auth_svc.auth.dto.response.UserProfileResponse;
@@ -47,6 +48,34 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .dateOfBirth(request.getDateOfBirth())
                 .avatarUrl(request.getAvatarUrl())
                 .role(request.getRole())
+                .build();
+
+        if (request.getSchoolId() != null) {
+            School school = schoolRepository
+                    .findById(request.getSchoolId())
+                    .orElseThrow(() -> new AppException(ErrorCode.SCHOOL_NOT_FOUND));
+            userProfile.setSchool(school);
+        }
+
+        userProfile = userProfileRepository.save(userProfile);
+        return mapToResponse(userProfile);
+    }
+
+    @Transactional
+    @Override
+    public UserProfileResponse createSelfUserProfile(SelfUserProfileRequest request, String accountId, String role) {
+        log.info("User creating their own profile for account ID: {}, role: {}", accountId, role);
+
+        if (userProfileRepository.existsByAccountId(accountId)) {
+            throw new AppException(ErrorCode.USER_PROFILE_ALREADY_EXISTS);
+        }
+
+        UserProfile userProfile = UserProfile.builder()
+                .accountId(accountId)
+                .fullName(request.getFullName())
+                .dateOfBirth(request.getDateOfBirth())
+                .avatarUrl(request.getAvatarUrl())
+                .role(role)
                 .build();
 
         if (request.getSchoolId() != null) {
@@ -148,6 +177,36 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_PROFILE_NOT_FOUND));
         userProfile.softDelete();
         userProfileRepository.save(userProfile);
+    }
+
+    @Transactional
+    @Override
+    public UserProfileResponse updateSelfUserProfile(UserProfileUpdateRequest request, String accountId) {
+        log.info("User updating their own profile, accountId: {}", accountId);
+
+        UserProfile userProfile = userProfileRepository
+                .findByAccountId(accountId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_PROFILE_NOT_FOUND));
+
+        if (request.getFullName() != null) {
+            userProfile.setFullName(request.getFullName());
+        }
+        if (request.getDateOfBirth() != null) {
+            userProfile.setDateOfBirth(request.getDateOfBirth());
+        }
+        if (request.getAvatarUrl() != null) {
+            userProfile.setAvatarUrl(request.getAvatarUrl());
+        }
+        if (request.getSchoolId() != null) {
+            School school = schoolRepository
+                    .findById(request.getSchoolId())
+                    .orElseThrow(() -> new AppException(ErrorCode.SCHOOL_NOT_FOUND));
+            userProfile.setSchool(school);
+        }
+
+        userProfile = userProfileRepository.save(userProfile);
+        log.info("User profile updated successfully for accountId: {}", accountId);
+        return mapToResponse(userProfile);
     }
 
     @Override

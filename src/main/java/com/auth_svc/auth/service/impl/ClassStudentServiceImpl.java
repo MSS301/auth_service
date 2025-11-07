@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.auth_svc.auth.dto.request.ClassStudentRequest;
+import com.auth_svc.auth.dto.request.EnrollmentRequest;
 import com.auth_svc.auth.dto.response.ClassStudentResponse;
 import com.auth_svc.auth.entity.Class;
 import com.auth_svc.auth.entity.ClassStudent;
@@ -56,6 +57,36 @@ public class ClassStudentServiceImpl implements ClassStudentService {
         return mapToResponse(classStudent);
     }
 
+    @Transactional
+    @Override
+    public ClassStudentResponse enrollWithPassword(EnrollmentRequest request, String studentId) {
+        log.info("Student {} requesting to enroll in class {} with password", studentId, request.getClassId());
+
+        UserProfile student = userProfileRepository
+                .findByAccountId(studentId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_PROFILE_NOT_FOUND));
+
+        if (classStudentRepository.existsByClassEntityIdAndStudentId(request.getClassId(), student.getId())) {
+            throw new AppException(ErrorCode.CLASS_STUDENT_ALREADY_EXISTS);
+        }
+
+        Class classEntity = classRepository
+                .findById(request.getClassId())
+                .orElseThrow(() -> new AppException(ErrorCode.CLASS_NOT_FOUND));
+
+        // Verify password
+        if (classEntity.getPassword() == null || !classEntity.getPassword().equals(request.getPassword())) {
+            throw new AppException(ErrorCode.INVALID_CLASS_PASSWORD);
+        }
+
+        ClassStudent classStudent =
+                ClassStudent.builder().classEntity(classEntity).student(student).build();
+
+        classStudent = classStudentRepository.save(classStudent);
+        log.info("Student {} successfully enrolled in class {}", studentId, request.getClassId());
+        return mapToResponse(classStudent);
+    }
+
     @Override
     public ClassStudentResponse getEnrollmentById(Integer id) {
         log.info("Getting enrollment by id: {}", id);
@@ -63,6 +94,19 @@ public class ClassStudentServiceImpl implements ClassStudentService {
                 .findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CLASS_STUDENT_NOT_FOUND));
         return mapToResponse(classStudent);
+    }
+
+    @Override
+    public List<ClassStudentResponse> getMyEnrollments(String accountId) {
+        log.info("Getting enrollments for student with accountId: {}", accountId);
+
+        UserProfile student = userProfileRepository
+                .findByAccountId(accountId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_PROFILE_NOT_FOUND));
+
+        return classStudentRepository.findByStudentId(student.getId()).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -99,6 +143,23 @@ public class ClassStudentServiceImpl implements ClassStudentService {
         }
 
         classStudentRepository.deleteByClassEntityIdAndStudentId(classId, studentId);
+    }
+
+    @Transactional
+    @Override
+    public void unenrollSelf(Integer classId, String accountId) {
+        log.info("Student with accountId {} unenrolling from class {}", accountId, classId);
+
+        UserProfile student = userProfileRepository
+                .findByAccountId(accountId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_PROFILE_NOT_FOUND));
+
+        if (!classStudentRepository.existsByClassEntityIdAndStudentId(classId, student.getId())) {
+            throw new AppException(ErrorCode.CLASS_STUDENT_NOT_FOUND);
+        }
+
+        classStudentRepository.deleteByClassEntityIdAndStudentId(classId, student.getId());
+        log.info("Student {} successfully unenrolled from class {}", accountId, classId);
     }
 
     @Transactional

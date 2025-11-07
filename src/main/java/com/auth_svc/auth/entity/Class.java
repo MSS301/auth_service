@@ -31,6 +31,9 @@ public class Class {
     @Column(name = "grade")
     Integer grade;
 
+    @Column(name = "password", length = 100)
+    String password;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id")
     UserProfile teacher;
