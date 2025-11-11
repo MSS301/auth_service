@@ -1,14 +1,23 @@
 package com.auth_svc.auth.controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.auth_svc.auth.dto.request.SelfUserProfileRequest;
 import com.auth_svc.auth.dto.request.UserProfileRequest;
@@ -41,11 +50,16 @@ public class UserProfileController {
                 .build();
     }
 
-    @PostMapping("/me")
+    @PostMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Create user profile for current user",
-            description = "Allows a user to create their own profile using their JWT token")
-    public ApiResponse<UserProfileResponse> createSelfUserProfile(@Valid @RequestBody SelfUserProfileRequest request) {
+            description =
+                    "Allows a user to create their own profile using their JWT token and optionally upload teacher proof")
+    public ApiResponse<UserProfileResponse> createSelfUserProfile(
+            @Valid @ModelAttribute SelfUserProfileRequest request,
+            @RequestPart(name = "teacherProof", required = false) MultipartFile teacherProof,
+            @RequestPart(name = "avatar", required = false) MultipartFile avatar)
+            throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName(); // This gets the "sub" claim from JWT
 
@@ -58,8 +72,20 @@ public class UserProfileController {
                 .orElse(null);
 
         log.info("REST request for user to create their own profile, user ID: {}, role: {}", currentUserId, role);
+
+        String teacherProofPath = null;
+        if (teacherProof != null && !teacherProof.isEmpty()) {
+            teacherProofPath = saveTeacherProof(teacherProof);
+        }
+
+        String avatarPath = null;
+        if (avatar != null && !avatar.isEmpty()) {
+            avatarPath = saveTeacherProof(avatar); // reuse same storage method
+        }
+
         return ApiResponse.<UserProfileResponse>builder()
-                .result(userProfileService.createSelfUserProfile(request, currentUserId, role))
+                .result(userProfileService.createSelfUserProfile(
+                        request, currentUserId, role, teacherProofPath, avatarPath))
                 .build();
     }
 
@@ -115,26 +141,57 @@ public class UserProfileController {
         return PaginatedResponse.of(userProfiles);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<UserProfileResponse> updateUserProfile(
-            @PathVariable Integer id, @Valid @RequestBody UserProfileUpdateRequest request) {
+            @PathVariable Integer id,
+            @Valid @ModelAttribute UserProfileUpdateRequest request,
+            @RequestPart(name = "teacherProof", required = false) MultipartFile teacherProof)
+            throws IOException {
         log.info("REST request to update user profile id: {}", id);
+
+        String savedPath = null;
+        if (teacherProof != null && !teacherProof.isEmpty()) {
+            savedPath = saveTeacherProof(teacherProof);
+        }
+
         return ApiResponse.<UserProfileResponse>builder()
-                .result(userProfileService.updateUserProfile(id, request))
+                .result(userProfileService.updateUserProfile(id, request, savedPath))
                 .build();
     }
 
-    @PutMapping("/me")
+    @PutMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Update own profile", description = "User updates their own profile using their JWT token")
     public ApiResponse<UserProfileResponse> updateSelfUserProfile(
-            @Valid @RequestBody UserProfileUpdateRequest request) {
+            @Valid @ModelAttribute UserProfileUpdateRequest request,
+            @RequestPart(name = "teacherProof", required = false) MultipartFile teacherProof)
+            throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
 
         log.info("REST request for user to update their own profile, user ID: {}", currentUserId);
+
+        String savedPath = null;
+        if (teacherProof != null && !teacherProof.isEmpty()) {
+            savedPath = saveTeacherProof(teacherProof);
+        }
+
         return ApiResponse.<UserProfileResponse>builder()
-                .result(userProfileService.updateSelfUserProfile(request, currentUserId))
+                .result(userProfileService.updateSelfUserProfile(request, currentUserId, savedPath))
                 .build();
+    }
+
+    private String saveTeacherProof(MultipartFile file) throws IOException {
+        // Simple local storage. Production should use S3 or other storage and sanitize filenames.
+        String uploadDir = System.getProperty("user.dir") + "/uploads/teacher_proofs";
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        String filename = Instant.now().toEpochMilli() + "_" + file.getOriginalFilename();
+        Path target = uploadPath.resolve(filename).normalize();
+        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+        return target.toString();
     }
 
     @DeleteMapping("/{id}")

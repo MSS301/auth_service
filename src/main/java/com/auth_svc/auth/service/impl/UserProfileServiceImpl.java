@@ -63,26 +63,48 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Transactional
     @Override
-    public UserProfileResponse createSelfUserProfile(SelfUserProfileRequest request, String accountId, String role) {
+    public UserProfileResponse createSelfUserProfile(
+            SelfUserProfileRequest request, String accountId, String role, String teacherProofUrl, String avatarUrl) {
         log.info("User creating their own profile for account ID: {}, role: {}", accountId, role);
 
         if (userProfileRepository.existsByAccountId(accountId)) {
             throw new AppException(ErrorCode.USER_PROFILE_ALREADY_EXISTS);
         }
 
-        UserProfile userProfile = UserProfile.builder()
+        UserProfile.UserProfileBuilder builder = UserProfile.builder()
                 .accountId(accountId)
                 .fullName(request.getFullName())
                 .dateOfBirth(request.getDateOfBirth())
                 .avatarUrl(request.getAvatarUrl())
-                .role(role)
-                .build();
+                .role(role);
+
+        UserProfile userProfile = builder.build();
+
+        // If avatar file was uploaded, override avatarUrl with saved path
+        if (avatarUrl != null && !avatarUrl.isBlank()) {
+            userProfile.setAvatarUrl(avatarUrl);
+        }
 
         if (request.getSchoolId() != null) {
             School school = schoolRepository
                     .findById(request.getSchoolId())
                     .orElseThrow(() -> new AppException(ErrorCode.SCHOOL_NOT_FOUND));
             userProfile.setSchool(school);
+        }
+
+        // If role is TEACHER, require teacherProofUrl
+        if ("TEACHER".equalsIgnoreCase(role)) {
+            if (teacherProofUrl == null || teacherProofUrl.isBlank()) {
+                throw new AppException(ErrorCode.TEACHER_PROOF_REQUIRED);
+            }
+            userProfile.setTeacherProofUrl(teacherProofUrl);
+            userProfile.setTeacherProofVerified(false);
+        } else {
+            // If teacherProof provided without teacher role, still store it as pending
+            if (teacherProofUrl != null && !teacherProofUrl.isBlank()) {
+                userProfile.setTeacherProofUrl(teacherProofUrl);
+                userProfile.setTeacherProofVerified(false);
+            }
         }
 
         userProfile = userProfileRepository.save(userProfile);
@@ -139,7 +161,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Transactional
     @Override
-    public UserProfileResponse updateUserProfile(Integer id, UserProfileUpdateRequest request) {
+    public UserProfileResponse updateUserProfile(Integer id, UserProfileUpdateRequest request, String teacherProofUrl) {
         log.info("Updating user profile id: {}", id);
         UserProfile userProfile = userProfileRepository
                 .findById(id)
@@ -154,14 +176,31 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (request.getAvatarUrl() != null) {
             userProfile.setAvatarUrl(request.getAvatarUrl());
         }
+
+        // If role is being set/changed to TEACHER, require proof
         if (request.getRole() != null) {
-            userProfile.setRole(request.getRole());
+            String newRole = request.getRole();
+            userProfile.setRole(newRole);
+            if ("TEACHER".equalsIgnoreCase(newRole)) {
+                if (teacherProofUrl == null || teacherProofUrl.isBlank()) {
+                    throw new AppException(ErrorCode.TEACHER_PROOF_REQUIRED);
+                }
+                userProfile.setTeacherProofUrl(teacherProofUrl);
+                userProfile.setTeacherProofVerified(false);
+            }
         }
+
         if (request.getSchoolId() != null) {
             School school = schoolRepository
                     .findById(request.getSchoolId())
                     .orElseThrow(() -> new AppException(ErrorCode.SCHOOL_NOT_FOUND));
             userProfile.setSchool(school);
+        }
+
+        // If teacherProofUrl provided without role change, still store it and mark as pending verification
+        if (teacherProofUrl != null && !teacherProofUrl.isBlank()) {
+            userProfile.setTeacherProofUrl(teacherProofUrl);
+            userProfile.setTeacherProofVerified(false);
         }
 
         userProfile = userProfileRepository.save(userProfile);
@@ -181,7 +220,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Transactional
     @Override
-    public UserProfileResponse updateSelfUserProfile(UserProfileUpdateRequest request, String accountId) {
+    public UserProfileResponse updateSelfUserProfile(
+            UserProfileUpdateRequest request, String accountId, String teacherProofUrl) {
         log.info("User updating their own profile, accountId: {}", accountId);
 
         UserProfile userProfile = userProfileRepository
@@ -197,11 +237,30 @@ public class UserProfileServiceImpl implements UserProfileService {
         if (request.getAvatarUrl() != null) {
             userProfile.setAvatarUrl(request.getAvatarUrl());
         }
+
         if (request.getSchoolId() != null) {
             School school = schoolRepository
                     .findById(request.getSchoolId())
                     .orElseThrow(() -> new AppException(ErrorCode.SCHOOL_NOT_FOUND));
             userProfile.setSchool(school);
+        }
+
+        if (request.getRole() != null) {
+            String newRole = request.getRole();
+            userProfile.setRole(newRole);
+            if ("TEACHER".equalsIgnoreCase(newRole)) {
+                if (teacherProofUrl == null || teacherProofUrl.isBlank()) {
+                    throw new AppException(ErrorCode.TEACHER_PROOF_REQUIRED);
+                }
+                userProfile.setTeacherProofUrl(teacherProofUrl);
+                userProfile.setTeacherProofVerified(false);
+            }
+        }
+
+        // If teacherProofUrl provided without role change, still store it and mark as pending verification
+        if (teacherProofUrl != null && !teacherProofUrl.isBlank()) {
+            userProfile.setTeacherProofUrl(teacherProofUrl);
+            userProfile.setTeacherProofVerified(false);
         }
 
         userProfile = userProfileRepository.save(userProfile);
@@ -251,6 +310,8 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .dateOfBirth(userProfile.getDateOfBirth())
                 .avatarUrl(userProfile.getAvatarUrl())
                 .role(userProfile.getRole())
+                .teacherProofUrl(userProfile.getTeacherProofUrl())
+                .teacherProofVerified(userProfile.isTeacherProofVerified())
                 .createdAt(userProfile.getCreatedAt())
                 .updatedAt(userProfile.getUpdatedAt())
                 .build();

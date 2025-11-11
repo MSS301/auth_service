@@ -72,15 +72,14 @@ public class ClassController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('TEACHER')")
-    @Operation(summary = "Get my classes", description = "Teacher gets all their classes")
-    public ApiResponse<List<ClassResponse>> getMyClasses() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserId = authentication.getName();
+    @Operation(summary = "Get my classes", description = "Teacher gets all their classes with pagination")
+    public PaginatedResponse<ClassResponse> getMyClasses(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = auth.getName();
 
         log.info("REST request for teacher to get their classes, user ID: {}", currentUserId);
-        return ApiResponse.<List<ClassResponse>>builder()
-                .result(classService.getMyClasses(currentUserId))
-                .build();
+        Page<ClassResponse> page = classService.getMyClasses(currentUserId, pageable);
+        return PaginatedResponse.of(page);
     }
 
     @GetMapping

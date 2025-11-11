@@ -38,6 +38,12 @@ public class UserProfile {
     @Column(name = "avatar_url", columnDefinition = "TEXT")
     String avatarUrl;
 
+    @Column(name = "teacher_proof_url", columnDefinition = "TEXT")
+    String teacherProofUrl;
+
+    @Column(name = "teacher_proof_verified", nullable = false, columnDefinition = "boolean default false")
+    boolean teacherProofVerified;
+
     @Column(name = "role", length = 50)
     String role;
 

@@ -113,6 +113,17 @@ public class ClassServiceImpl implements ClassService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Page<ClassResponse> getMyClasses(String accountId, Pageable pageable) {
+        log.info("Getting classes for teacher with accountId: {} with pagination", accountId);
+
+        UserProfile teacher = userProfileRepository
+                .findByAccountId(accountId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_PROFILE_NOT_FOUND));
+
+        return classRepository.findByTeacherId(teacher.getId(), pageable).map(this::mapToResponse);
+    }
+
     //    @Override
     //    public List<ClassResponse> getAllClasses() {
     //        log.info("Getting all classes");

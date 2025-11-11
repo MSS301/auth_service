@@ -20,6 +20,8 @@ public class UserProfileResponse {
     LocalDate dateOfBirth;
     String avatarUrl;
     String role;
+    String teacherProofUrl;
+    boolean teacherProofVerified;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }

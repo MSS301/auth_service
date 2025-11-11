@@ -22,6 +22,7 @@ public enum ErrorCode {
     SCHOOL_ALREADY_EXISTS(1011, "School with this name already exists", HttpStatus.CONFLICT),
     USER_PROFILE_NOT_FOUND(1012, "User profile not found", HttpStatus.NOT_FOUND),
     USER_PROFILE_ALREADY_EXISTS(1013, "User profile already exists for this account", HttpStatus.CONFLICT),
+    TEACHER_PROOF_REQUIRED(1021, "Proof document is required when setting role to TEACHER", HttpStatus.BAD_REQUEST),
     CLASS_NOT_FOUND(1014, "Class not found", HttpStatus.NOT_FOUND),
     CLASS_STUDENT_NOT_FOUND(1015, "Class student enrollment not found", HttpStatus.NOT_FOUND),
     CLASS_STUDENT_ALREADY_EXISTS(1016, "Student is already enrolled in this class", HttpStatus.CONFLICT),

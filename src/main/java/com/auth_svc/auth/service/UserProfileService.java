@@ -14,7 +14,8 @@ public interface UserProfileService {
 
     UserProfileResponse createUserProfile(UserProfileRequest request);
 
-    UserProfileResponse createSelfUserProfile(SelfUserProfileRequest request, String accountId, String role);
+    UserProfileResponse createSelfUserProfile(
+            SelfUserProfileRequest request, String accountId, String role, String teacherProofUrl, String avatarUrl);
 
     UserProfileResponse getUserProfileById(Integer id);
 
@@ -36,9 +37,10 @@ public interface UserProfileService {
 
     Page<UserProfileResponse> getUserProfilesBySchoolAndRole(Integer schoolId, String role, Pageable pageable);
 
-    UserProfileResponse updateUserProfile(Integer id, UserProfileUpdateRequest request);
+    UserProfileResponse updateUserProfile(Integer id, UserProfileUpdateRequest request, String teacherProofUrl);
 
-    UserProfileResponse updateSelfUserProfile(UserProfileUpdateRequest request, String accountId);
+    UserProfileResponse updateSelfUserProfile(
+            UserProfileUpdateRequest request, String accountId, String teacherProofUrl);
 
     void deleteUserProfile(Integer id);
 }

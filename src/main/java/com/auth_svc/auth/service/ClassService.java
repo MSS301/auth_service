@@ -15,6 +15,8 @@ public interface ClassService {
 
     java.util.List<ClassResponse> getMyClasses(String accountId);
 
+    Page<ClassResponse> getMyClasses(String accountId, Pageable pageable);
+
     ClassResponse getClassById(Integer id);
 
     //    List<ClassResponse> getAllClasses();
