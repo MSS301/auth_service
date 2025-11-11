@@ -1,6 +1,7 @@
 package com.auth_svc.auth.service.impl;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashSet;
@@ -23,6 +24,8 @@ import com.auth_svc.auth.exception.ErrorCode;
 import com.auth_svc.auth.repository.RoleRepository;
 import com.auth_svc.auth.repository.UserRepository;
 import com.auth_svc.auth.service.GoogleOAuthService;
+import com.auth_svc.event.UserEventProducer;
+import com.auth_svc.event.UserRegisteredEvent;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -42,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class GoogleOAuthServiceImpl implements GoogleOAuthService {
-
+    UserEventProducer userEventProducer;
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
@@ -98,6 +101,13 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
 
         // Save user changes
         user = userRepository.save(user);
+        UserRegisteredEvent userRegisteredEvent = UserRegisteredEvent.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .timestamp(LocalDateTime.now())
+                .build();
+        userEventProducer.publishUserRegisteredEvent(userRegisteredEvent);
 
         // Generate JWT token
         String token = generateToken(user);

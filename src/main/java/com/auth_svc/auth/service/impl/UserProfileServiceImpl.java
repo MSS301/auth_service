@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +57,6 @@ public class UserProfileServiceImpl implements UserProfileService {
                     .orElseThrow(() -> new AppException(ErrorCode.SCHOOL_NOT_FOUND));
             userProfile.setSchool(school);
         }
-
         userProfile = userProfileRepository.save(userProfile);
         return mapToResponse(userProfile);
     }
@@ -292,6 +292,13 @@ public class UserProfileServiceImpl implements UserProfileService {
         return userProfileRepository
                 .findBySchoolIdAndRole(schoolId, role, pageable)
                 .map(this::mapToResponse);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<UserProfileResponse> getProfilesWithTeacherProof(Pageable pageable) {
+        log.info("Getting user profiles with teacher proof with pagination");
+        return userProfileRepository.findProfilesWithTeacherProof(pageable).map(this::mapToResponse);
     }
 
     private UserProfileResponse mapToResponse(UserProfile userProfile) {

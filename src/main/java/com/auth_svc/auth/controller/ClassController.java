@@ -154,7 +154,7 @@ public class ClassController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     @Operation(summary = "Delete a class", description = "Deletes a class by ID")
     public ApiResponse<Void> deleteClass(@PathVariable Integer id) {
         log.info("REST request to delete class id: {}", id);

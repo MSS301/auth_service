@@ -54,6 +54,11 @@ public class ClassStudentServiceImpl implements ClassStudentService {
                 ClassStudent.builder().classEntity(classEntity).student(student).build();
 
         classStudent = classStudentRepository.save(classStudent);
+
+        // Increment student count
+        classEntity.setStudentCount(classEntity.getStudentCount() + 1);
+        classRepository.save(classEntity);
+
         return mapToResponse(classStudent);
     }
 
@@ -83,6 +88,11 @@ public class ClassStudentServiceImpl implements ClassStudentService {
                 ClassStudent.builder().classEntity(classEntity).student(student).build();
 
         classStudent = classStudentRepository.save(classStudent);
+
+        // Increment student count
+        classEntity.setStudentCount(classEntity.getStudentCount() + 1);
+        classRepository.save(classEntity);
+
         log.info("Student {} successfully enrolled in class {}", studentId, request.getClassId());
         return mapToResponse(classStudent);
     }
@@ -143,6 +153,12 @@ public class ClassStudentServiceImpl implements ClassStudentService {
         }
 
         classStudentRepository.deleteByClassEntityIdAndStudentId(classId, studentId);
+
+        // Decrement student count
+        Class classEntity =
+                classRepository.findById(classId).orElseThrow(() -> new AppException(ErrorCode.CLASS_NOT_FOUND));
+        classEntity.setStudentCount(Math.max(0, classEntity.getStudentCount() - 1));
+        classRepository.save(classEntity);
     }
 
     @Transactional
@@ -159,6 +175,13 @@ public class ClassStudentServiceImpl implements ClassStudentService {
         }
 
         classStudentRepository.deleteByClassEntityIdAndStudentId(classId, student.getId());
+
+        // Decrement student count
+        Class classEntity =
+                classRepository.findById(classId).orElseThrow(() -> new AppException(ErrorCode.CLASS_NOT_FOUND));
+        classEntity.setStudentCount(Math.max(0, classEntity.getStudentCount() - 1));
+        classRepository.save(classEntity);
+
         log.info("Student {} successfully unenrolled from class {}", accountId, classId);
     }
 

@@ -202,4 +202,16 @@ public class UserProfileController {
                 .message("User profile deleted successfully")
                 .build();
     }
+
+    @GetMapping("/teacher-proofs")
+    @Operation(
+            summary = "Get all user profiles with teacher proof",
+            description =
+                    "Returns paginated list of user profiles who have submitted teacher proof documents, sorted by creation date")
+    public PaginatedResponse<UserProfileResponse> getProfilesWithTeacherProof(
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+        log.info("REST request to get profiles with teacher proof");
+        Page<UserProfileResponse> page = userProfileService.getProfilesWithTeacherProof(pageable);
+        return PaginatedResponse.of(page);
+    }
 }

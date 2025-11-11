@@ -271,10 +271,7 @@ public class ClassServiceImpl implements ClassService {
                         classEntity.getTeacher() != null
                                 ? classEntity.getTeacher().getFullName()
                                 : null)
-                .studentCount(
-                        classEntity.getClassStudents() != null
-                                ? classEntity.getClassStudents().size()
-                                : 0)
+                .studentCount(classEntity.getStudentCount())
                 .build();
     }
 }

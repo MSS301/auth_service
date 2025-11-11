@@ -38,6 +38,10 @@ public class Class {
     @JoinColumn(name = "teacher_id")
     UserProfile teacher;
 
+    @Builder.Default
+    @Column(name = "student_count", nullable = false, columnDefinition = "integer default 0")
+    Integer studentCount = 0;
+
     @Column(name = "deleted", nullable = false, columnDefinition = "boolean default false")
     boolean deleted;
 

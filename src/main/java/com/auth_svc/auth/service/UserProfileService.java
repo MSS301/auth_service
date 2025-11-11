@@ -43,4 +43,6 @@ public interface UserProfileService {
             UserProfileUpdateRequest request, String accountId, String teacherProofUrl);
 
     void deleteUserProfile(Integer id);
+
+    Page<UserProfileResponse> getProfilesWithTeacherProof(Pageable pageable);
 }
