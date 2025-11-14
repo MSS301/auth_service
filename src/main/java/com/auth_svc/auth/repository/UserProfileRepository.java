@@ -43,5 +43,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Intege
     @Query("SELECT up FROM UserProfile up WHERE up.teacherProofUrl IS NOT NULL AND up.deleted = false")
     Page<UserProfile> findProfilesWithTeacherProof(Pageable pageable);
 
+    @Query("SELECT up FROM UserProfile up WHERE up.teacherProofVerified = :teacherProofVerified AND up.deleted = false")
+    Page<UserProfile> findByTeacherProofVerified(Boolean teacherProofVerified, Pageable pageable);
+
     boolean existsByAccountId(String accountId);
 }

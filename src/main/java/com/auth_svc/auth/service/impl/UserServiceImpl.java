@@ -24,6 +24,7 @@ import com.auth_svc.auth.entity.User;
 import com.auth_svc.auth.exception.AppException;
 import com.auth_svc.auth.exception.ErrorCode;
 import com.auth_svc.auth.repository.RoleRepository;
+import com.auth_svc.auth.repository.UserProfileRepository;
 import com.auth_svc.auth.repository.UserRepository;
 import com.auth_svc.auth.service.EmailService;
 import com.auth_svc.auth.service.UserService;
@@ -42,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UserServiceImpl implements UserService {
     UserRepository userRepository;
     RoleRepository roleRepository;
+    UserProfileRepository userProfileRepository;
     PasswordEncoder passwordEncoder;
     UserEventProducer userEventProducer;
     EmailService emailService;
@@ -178,6 +180,13 @@ public class UserServiceImpl implements UserService {
 
         user.getRoles().add(teacherRole);
         user = userRepository.save(user);
+
+        // Also update the user's profile to mark teacher proof as verified
+        userProfileRepository.findByAccountId(userId).ifPresent(profile -> {
+            profile.setTeacherProofVerified(true);
+            userProfileRepository.save(profile);
+            log.info("Marked teacher proof as verified for user profile: {}", profile.getId());
+        });
 
         return toUserResponse(user);
     }

@@ -301,6 +301,15 @@ public class UserProfileServiceImpl implements UserProfileService {
         return userProfileRepository.findProfilesWithTeacherProof(pageable).map(this::mapToResponse);
     }
 
+    @Override
+    public Page<UserProfileResponse> getUserProfilesByTeacherProofVerified(
+            Boolean teacherProofVerified, Pageable pageable) {
+        log.info("Getting user profiles by teacherProofVerified={} with pagination", teacherProofVerified);
+        return userProfileRepository
+                .findByTeacherProofVerified(teacherProofVerified, pageable)
+                .map(this::mapToResponse);
+    }
+
     private UserProfileResponse mapToResponse(UserProfile userProfile) {
         return UserProfileResponse.builder()
                 .id(userProfile.getId())

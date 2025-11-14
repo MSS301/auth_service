@@ -123,12 +123,16 @@ public class UserProfileController {
     public PaginatedResponse<UserProfileResponse> getAllUserProfiles(
             @Parameter(description = "Filter by school ID") @RequestParam(required = false) Integer schoolId,
             @Parameter(description = "Filter by role") @RequestParam(required = false) String role,
+            @Parameter(description = "Filter by teacher proof verification status") @RequestParam(required = false)
+                    Boolean teacherProofVerified,
             @Parameter(description = "Pagination parameters") @PageableDefault(size = 20, sort = "id")
                     Pageable pageable) {
         log.info("REST request to get all user profiles with pagination");
 
         Page<UserProfileResponse> userProfiles;
-        if (schoolId != null && role != null) {
+        if (teacherProofVerified != null) {
+            userProfiles = userProfileService.getUserProfilesByTeacherProofVerified(teacherProofVerified, pageable);
+        } else if (schoolId != null && role != null) {
             userProfiles = userProfileService.getUserProfilesBySchoolAndRole(schoolId, role, pageable);
         } else if (schoolId != null) {
             userProfiles = userProfileService.getUserProfilesBySchool(schoolId, pageable);

@@ -45,4 +45,6 @@ public interface UserProfileService {
     void deleteUserProfile(Integer id);
 
     Page<UserProfileResponse> getProfilesWithTeacherProof(Pageable pageable);
+
+    Page<UserProfileResponse> getUserProfilesByTeacherProofVerified(Boolean teacherProofVerified, Pageable pageable);
 }
